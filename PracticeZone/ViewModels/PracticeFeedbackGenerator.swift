@@ -63,18 +63,19 @@ final class PracticeFeedbackGenerator {
             do {
                 async let grammarResponse = grammarSession.respond(
                     generating: GrammarCheckResult.self,
-                    options: GenerationOptions(sampling: .greedy)
+                    options: GenerationOptions(samplingMode: .greedy)
                 ) {
-                    "Here are two examples of the output. Follow their style, but do not copy their content:"
+                    "Here are three examples of the output. Follow their style, but do not copy their content:"
                     GrammarCheckResult.exampleCorrect
                     GrammarCheckResult.exampleMistake
+                    GrammarCheckResult.exampleTwoCorrections
 
                     "Sentence: \"\(sentence)\""
                 }
 
                 async let meaningResponse = meaningSession.respond(
                     generating: MeaningCheckResult.self,
-                    options: GenerationOptions(sampling: .greedy)
+                    options: GenerationOptions(samplingMode: .greedy)
                 ) {
                     "Here are three examples of the output. Follow their style, but do not copy their content:"
                     MeaningCheckResult.exampleGivenSense

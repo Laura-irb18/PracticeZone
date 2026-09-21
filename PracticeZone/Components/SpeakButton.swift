@@ -14,3 +14,9 @@ struct SpeakButton: View {
         .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 }
+
+#Preview {
+    SpeakButton(text: "reservation")
+        .font(.title2)
+        .padding()
+}
