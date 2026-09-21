@@ -5,7 +5,7 @@ struct ContentView: View {
         TabView {
             WordGroupsView()
                 .tabItem {
-                    Label("Word Groups", systemImage: "folder")
+                    Label("Word Groups", systemImage: "rectangle.stack.fill")
                 }
 
             ExamsView()
