@@ -21,18 +21,18 @@ final class VocabularyGenerator {
             "You are an English vocabulary tutor for Spanish-speaking learners."
 
             """
-            You receive one English word. You describe that exact word: its pronunciation \
-            transliterated into Spanish spelling, its distinct meanings explained in English, \
-            and example sentences with a Spanish translation. You never describe a different \
-            word, and you never answer in a different language than the one each field asks for.
+            You receive one English word. You describe that exact word: its distinct meanings \
+            explained in English, and example sentences with a Spanish translation. You never \
+            describe a different word, and you never answer in a different language than the \
+            one each field asks for.
             """
 
             """
-            Rules for pronunciation fields:
+            Rules for the example sentence pronunciation field:
             - Write the English sound using plain, continuous Spanish spelling — no hyphens, \
               no capital letters, no accent marks, no syllable breaks.
-            - Base this only on how the word is pronounced in English. Never base it on the \
-              Spanish translation or a Spanish cognate, even when the word looks like a Spanish \
+            - Base this only on how the sentence is pronounced in English. Never base it on the \
+              Spanish translation or a Spanish cognate, even when a word looks like a Spanish \
               word — English "nation", "reservation", "information" sound like "neishon", \
               "reserveishon", "informeishon", never like the Spanish "-ción" words.
             - Never use IPA symbols, slashes, brackets, or the English spelling itself.
@@ -74,7 +74,7 @@ final class VocabularyGenerator {
                 let stream = session.streamResponse(
                     generating: GeneratedVocabulary.self,
                     includeSchemaInPrompt: false,
-                    options: GenerationOptions(sampling: .greedy)
+                    options: GenerationOptions(samplingMode: .greedy)
                 ) {
                     "Describe this English word: \"\(word)\""
 

@@ -7,19 +7,6 @@ struct GeneratedVocabulary {
     var word: String
 
     @Guide(description: """
-        Write the word exactly as a Spanish speaker would read it aloud in Spanish spelling, \
-        approximating its ENGLISH pronunciation — a phonetic transliteration into Spanish. \
-        Use only lowercase Spanish letters (a-z, ñ, ü). No hyphens, no capital letters, no \
-        accent marks, no syllable breaks — write it as one continuous word. \
-        Base this only on how the word sounds in English, never on the Spanish translation or \
-        a Spanish cognate, even when the word looks like a Spanish word. \
-        Examples: "delay" -> "dilei"; "water" -> "uoter"; "beautiful" -> "biutiful"; \
-        "language" -> "languich"; "book" -> "buk"; "reservation" -> "reserveishon" \
-        (NOT "reservacion", which is the Spanish word, not the English pronunciation).
-        """)
-    var friendlyPronunciation: String
-
-    @Guide(description: """
         The genuinely distinct senses of this word, most common first, explained in English \
         (never in Spanish). Two senses are distinct only when they mean something different, \
         not just a stylistic variation. If the word has only one real sense, return exactly \
@@ -93,7 +80,6 @@ extension GeneratedVocabulary {
 
     static let exampleForReservation = GeneratedVocabulary(
         word: "reservation",
-        friendlyPronunciation: "reserveishon",
         meanings: [
             GeneratedMeaning(
                 partOfSpeech: .noun,
@@ -122,7 +108,6 @@ extension GeneratedVocabulary {
 
     static let exampleForLight = GeneratedVocabulary(
         word: "light",
-        friendlyPronunciation: "lait",
         meanings: [
             GeneratedMeaning(
                 partOfSpeech: .noun,
