@@ -31,8 +31,8 @@ struct PracticeWordView: View {
                         Label(result.isCorrect ? "Correct" : "Needs work", systemImage: result.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .foregroundStyle(result.isCorrect ? .green : .red)
                         Text(result.feedback)
-                        if !result.isCorrect {
-                            Text(result.correctedSentence)
+                        ForEach(result.correctedSentences, id: \.self) { corrected in
+                            Text(corrected)
                                 .italic()
                                 .foregroundStyle(.secondary)
                         }
@@ -56,6 +56,16 @@ struct PracticeWordView: View {
                             Text(attempt.feedback)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                            Text(attempt.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                deleteAttempt(attempt)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -124,15 +134,35 @@ struct PracticeWordView: View {
             sentence: sentence,
             isCorrect: result.isCorrect,
             feedback: result.feedback,
-            correctedSentence: result.correctedSentence,
+            correctedSentences: result.correctedSentences,
             item: item
         )
         modelContext.insert(attempt)
         item.practiceAttempts.append(attempt)
     }
 
+    private func deleteAttempt(_ attempt: PracticeAttempt) {
+        modelContext.delete(attempt)
+    }
+
     private func reset() {
         hasSubmitted = false
         sentence = ""
+    }
+}
+
+#Preview {
+    let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon")
+    item.meanings = [
+        Meaning(
+            definition: "an arrangement to have something held for you in advance",
+            partOfSpeech: "noun",
+            context: "used when booking a table, room, or seat",
+            order: 0,
+            item: item
+        )
+    ]
+    return NavigationStack {
+        PracticeWordView(item: item)
     }
 }

@@ -3,12 +3,12 @@ import Foundation
 struct PracticeFeedback {
     let isCorrect: Bool
     let feedback: String
-    let correctedSentence: String
+    let correctedSentences: [String]
 
     init(word: String, sentence: String, grammar: GrammarCheckResult, meaning: MeaningCheckResult) {
         let grammarOK = grammar.mistake.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "none"
         self.isCorrect = grammarOK && meaning.isCorrect
-        self.correctedSentence = grammarOK ? sentence : grammar.correctedSentence
+        self.correctedSentences = grammarOK ? [] : Self.dedupedCorrections(grammar.correctedSentences)
 
         switch (grammarOK, meaning.isCorrect) {
         case (true, true):
@@ -20,6 +20,20 @@ struct PracticeFeedback {
         case (false, false):
             self.feedback = "Two things to fix: \(grammar.mistake) Also, \(meaning.senseUsed)"
         }
+    }
+
+    private static func dedupedCorrections(_ sentences: [String]) -> [String] {
+        var seen = Set<String>()
+        var result: [String] = []
+        for raw in sentences {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { continue }
+            let key = trimmed.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "en"))
+            guard !seen.contains(key) else { continue }
+            seen.insert(key)
+            result.append(trimmed)
+        }
+        return result
     }
 }
 
