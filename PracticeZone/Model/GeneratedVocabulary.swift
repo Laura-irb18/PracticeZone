@@ -58,15 +58,6 @@ struct GeneratedExample {
     @Guide(description: "A natural English sentence, 6 to 12 words, that uses the word. Do not define the word inside the sentence.")
     var text: String
 
-    @Guide(description: """
-        The sentence written the same way as the word pronunciation: continuous Spanish-letter \
-        spelling approximating how it sounds in English, words separated by spaces, no hyphens, \
-        no capital letters, no accent marks. Base this only on English pronunciation, never on \
-        a Spanish translation. \
-        Example: "The flight had a long delay." -> "de flait jad a long dilei".
-        """)
-    var friendlyPronunciation: String
-
     @Guide(description: "The Spanish translation of the sentence: natural, idiomatic, neutral Latin American Spanish. Translate the meaning, not word by word.")
     var translation: String
 }
@@ -90,17 +81,14 @@ extension GeneratedVocabulary {
         examples: [
             GeneratedExample(
                 text: "We made a reservation for dinner at eight.",
-                friendlyPronunciation: "ui meid a reserveishon for diner at eit",
                 translation: "Hicimos una reserva para cenar a las ocho."
             ),
             GeneratedExample(
                 text: "The hotel canceled our reservation by mistake.",
-                friendlyPronunciation: "de jotel kanseld aur reserveishon bai misteik",
                 translation: "El hotel canceló nuestra reserva por error."
             ),
             GeneratedExample(
                 text: "You should call ahead to confirm the reservation.",
-                friendlyPronunciation: "yu shud col ajed tu confirm de reserveishon",
                 translation: "Deberías llamar antes para confirmar la reserva."
             )
         ]
@@ -123,17 +111,14 @@ extension GeneratedVocabulary {
         examples: [
             GeneratedExample(
                 text: "Please turn off the light before you leave.",
-                friendlyPronunciation: "plis tern of de lait bifor yu liv",
                 translation: "Por favor apaga la luz antes de irte."
             ),
             GeneratedExample(
                 text: "This backpack is very light for its size.",
-                friendlyPronunciation: "dis bakpak is veri lait for its sais",
                 translation: "Esta mochila es muy ligera para su tamaño."
             ),
             GeneratedExample(
                 text: "The room felt bright and full of light.",
-                friendlyPronunciation: "de rum felt brait and ful of lait",
                 translation: "La habitación se sentía brillante y llena de luz."
             )
         ]

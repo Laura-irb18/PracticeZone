@@ -28,17 +28,6 @@ final class VocabularyGenerator {
             """
 
             """
-            Rules for the example sentence pronunciation field:
-            - Write the English sound using plain, continuous Spanish spelling — no hyphens, \
-              no capital letters, no accent marks, no syllable breaks.
-            - Base this only on how the sentence is pronounced in English. Never base it on the \
-              Spanish translation or a Spanish cognate, even when a word looks like a Spanish \
-              word — English "nation", "reservation", "information" sound like "neishon", \
-              "reserveishon", "informeishon", never like the Spanish "-ción" words.
-            - Never use IPA symbols, slashes, brackets, or the English spelling itself.
-            """
-
-            """
             Rules for meanings:
             - Write each meaning's definition and context in English, never in Spanish.
             - List only senses that a dictionary would list, most common first.

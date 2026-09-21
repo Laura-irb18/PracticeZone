@@ -3,8 +3,7 @@ import SwiftData
 import Observation
 
 /// Shapes a freshly generated `GeneratedVocabulary` into a saved `VocabularyItem`:
-/// validating the word matches, deduping repeated meanings, and sanitizing the
-/// example pronunciations before inserting into SwiftData.
+/// validating the word matches and deduping repeated meanings before inserting into SwiftData.
 @Observable
 @MainActor
 final class VocabularyItemSaver {
@@ -56,7 +55,6 @@ final class VocabularyItemSaver {
         for generatedExample in generated.examples ?? [] {
             let example = Example(
                 text: generatedExample.text ?? "",
-                friendlyPronunciation: sanitizedPronunciation(generatedExample.friendlyPronunciation),
                 translation: generatedExample.translation ?? "",
                 item: item
             )
@@ -83,12 +81,5 @@ final class VocabularyItemSaver {
             ))
         }
         return result
-    }
-
-    private func sanitizedPronunciation(_ raw: String?) -> String {
-        guard let raw else { return "" }
-        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúüñÁÉÍÓÚÜÑ -")
-        let cleaned = raw.unicodeScalars.filter { allowed.contains($0) }.map(Character.init)
-        return String(cleaned).trimmingCharacters(in: .whitespaces)
     }
 }

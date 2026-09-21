@@ -72,7 +72,6 @@ struct WordDetailView: View {
     item.examples = [
         Example(
             text: "We made a reservation for dinner at eight.",
-            friendlyPronunciation: "ui meid a reserveishon for diner at eit",
             translation: "Hicimos una reserva para cenar a las ocho.",
             item: item
         )
