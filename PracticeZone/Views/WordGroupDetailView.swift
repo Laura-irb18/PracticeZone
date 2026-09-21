@@ -49,3 +49,21 @@ struct WordGroupDetailView: View {
         }
     }
 }
+
+#Preview {
+    let group = WordGroup(name: "Travel", groupDescription: "Words for booking trips", iconName: "airplane")
+    let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon", wordGroup: group)
+    item.meanings = [
+        Meaning(
+            definition: "an arrangement to have something held for you in advance",
+            partOfSpeech: "noun",
+            context: "used when booking a table, room, or seat",
+            order: 0,
+            item: item
+        )
+    ]
+    group.items = [item]
+    return NavigationStack {
+        WordGroupDetailView(group: group)
+    }
+}
