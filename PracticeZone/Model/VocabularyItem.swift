@@ -7,6 +7,7 @@ final class VocabularyItem {
     var friendlyPronunciation: String
     var isFavorite: Bool
     var createdAt: Date
+    var lastExaminedAt: Date?
     var wordGroup: WordGroup?
 
     @Relationship(deleteRule: .cascade, inverse: \Meaning.item)
@@ -18,7 +19,7 @@ final class VocabularyItem {
     @Relationship(deleteRule: .cascade, inverse: \PracticeAttempt.item)
     var practiceAttempts: [PracticeAttempt]
 
-    init(word: String, friendlyPronunciation: String, meanings: [Meaning] = [], examples: [Example] = [], practiceAttempts: [PracticeAttempt] = [], isFavorite: Bool = false, createdAt: Date = Date(), wordGroup: WordGroup? = nil) {
+    init(word: String, friendlyPronunciation: String, meanings: [Meaning] = [], examples: [Example] = [], practiceAttempts: [PracticeAttempt] = [], isFavorite: Bool = false, createdAt: Date = Date(), lastExaminedAt: Date? = nil, wordGroup: WordGroup? = nil) {
         self.word = word
         self.friendlyPronunciation = friendlyPronunciation
         self.meanings = meanings
@@ -26,6 +27,7 @@ final class VocabularyItem {
         self.practiceAttempts = practiceAttempts
         self.isFavorite = isFavorite
         self.createdAt = createdAt
+        self.lastExaminedAt = lastExaminedAt
         self.wordGroup = wordGroup
     }
 
