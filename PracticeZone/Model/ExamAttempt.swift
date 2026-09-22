@@ -43,14 +43,28 @@ final class ExamQuestionResult {
     var isCorrect: Bool
     var pointsEarned: Int
     var maxPoints: Int
+
+    /// For a wrong multiple-choice answer, the correct word. For a production answer,
+    /// the grammar/meaning feedback sentence from `PracticeFeedbackGenerator`. Nil when correct.
+    /// Optional (rather than a non-optional default) so lightweight migration can add this
+    /// attribute to existing rows without a "missing mandatory attribute" failure — SwiftData's
+    /// automatic migration only fills in a default for genuinely optional attributes.
+    var feedback: String?
+
+    /// Corrected versions of the submitted sentence, for a production answer only. Optional
+    /// for the same migration-safety reason as `feedback`.
+    var correctedSentences: [String]?
+
     var attempt: ExamAttempt?
 
-    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, attempt: ExamAttempt? = nil) {
+    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
         self.questionText = questionText
         self.kind = kind
         self.isCorrect = isCorrect
         self.pointsEarned = pointsEarned
         self.maxPoints = maxPoints
+        self.feedback = feedback
+        self.correctedSentences = correctedSentences
         self.attempt = attempt
     }
 }

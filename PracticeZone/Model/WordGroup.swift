@@ -22,4 +22,8 @@ final class WordGroup {
         self.items = items
         self.examAttempts = examAttempts
     }
+
+    var sortedExamAttempts: [ExamAttempt] {
+        examAttempts.sorted { $0.date > $1.date }
+    }
 }
