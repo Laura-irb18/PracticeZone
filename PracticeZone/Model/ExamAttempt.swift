@@ -29,6 +29,10 @@ final class ExamAttempt {
         guard total > 0 else { return 0 }
         return Int((Double(earned) / Double(total) * 100).rounded())
     }
+
+    var sortedQuestionResults: [ExamQuestionResult] {
+        questionResults.sorted { ($0.order ?? 0) < ($1.order ?? 0) }
+    }
 }
 
 enum ExamQuestionKind: String, Codable {
@@ -55,14 +59,26 @@ final class ExamQuestionResult {
     /// for the same migration-safety reason as `feedback`.
     var correctedSentences: [String]?
 
+    /// What the user answered: the chosen option for multiple choice, or the submitted
+    /// sentence for production. Optional for the same migration-safety reason as `feedback`
+    /// (and nil for results saved before this field existed).
+    var userAnswer: String?
+
+    /// Position of the question in the exam (0-based). SwiftData doesn't keep the order
+    /// of a to-many relationship when it refetches from the store, so results are sorted
+    /// by this. Optional for the same migration-safety reason as `feedback` (and nil for
+    /// results saved before this field existed).
+    var order: Int?
+
     var attempt: ExamAttempt?
 
-    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
+    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, userAnswer: String? = nil, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
         self.questionText = questionText
         self.kind = kind
         self.isCorrect = isCorrect
         self.pointsEarned = pointsEarned
         self.maxPoints = maxPoints
+        self.userAnswer = userAnswer
         self.feedback = feedback
         self.correctedSentences = correctedSentences
         self.attempt = attempt

@@ -17,7 +17,7 @@ struct ExamResultView: View {
             }
 
             Section("Questions") {
-                ForEach(attempt.questionResults) { result in
+                ForEach(attempt.sortedQuestionResults) { result in
                     ExamQuestionResultRow(result: result)
                 }
             }
@@ -34,14 +34,16 @@ struct ExamResultView: View {
             kind: .multipleChoice,
             isCorrect: true,
             pointsEarned: 1,
-            maxPoints: 1
+            maxPoints: 1,
+            userAnswer: "reservation"
         ),
         ExamQuestionResult(
             questionText: "Write a sentence using \"light\"",
             kind: .production,
             isCorrect: false,
             pointsEarned: 0,
-            maxPoints: 1
+            maxPoints: 1,
+            userAnswer: "The room is a light."
         )
     ]
     return NavigationStack {

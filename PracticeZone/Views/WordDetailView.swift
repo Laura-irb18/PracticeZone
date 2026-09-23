@@ -1,9 +1,13 @@
 import SwiftUI
+import SwiftData
 
 /// Detail of a saved word, sharing the exact layout used while a word is being generated.
 /// The pronunciation field is manual — Foundation Models no longer generates it.
 struct WordDetailView: View {
     @Bindable var item: VocabularyItem
+    @Environment(\.modelContext) private var modelContext
+    @State private var isAddingMeaning = false
+    @State private var editingMeaning: Meaning?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -28,19 +32,49 @@ struct WordDetailView: View {
                     #endif
             }
 
-            if !item.sortedMeanings.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Meanings")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ForEach(item.sortedMeanings) { meaning in
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Meanings")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                ForEach(Array(item.sortedMeanings.enumerated()), id: \.element.id) { index, meaning in
+                    HStack(alignment: .firstTextBaseline) {
+                        if item.meanings.count > 1 {
+                            Button {
+                                MeaningEditor.makePrimary(meaning, in: item)
+                            } label: {
+                                Image(systemName: index == 0 ? "star.fill" : "star")
+                                    .foregroundStyle(index == 0 ? .yellow : .secondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(index == 0 ? "Main meaning" : "Mark as main meaning")
+                        }
                         MeaningRow(
                             definition: meaning.definition,
                             partOfSpeech: meaning.partOfSpeech,
                             context: meaning.context
                         )
+                        Spacer(minLength: 0)
+                        Menu {
+                            Button("Edit", systemImage: "pencil") {
+                                editingMeaning = meaning
+                            }
+                            if item.meanings.count > 1 {
+                                Button("Delete", systemImage: "trash", role: .destructive) {
+                                    MeaningEditor.delete(meaning, from: item, in: modelContext)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Meaning options")
                     }
                 }
+                Button("Add Meaning", systemImage: "plus") {
+                    isAddingMeaning = true
+                }
+                .buttonStyle(.borderless)
             }
 
             if !item.examples.isEmpty {
@@ -55,6 +89,16 @@ struct WordDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .sheet(isPresented: $isAddingMeaning) {
+            MeaningEditSheet(title: "New Meaning", initialDefinition: "") { definition in
+                MeaningEditor.add(definition: definition, to: item)
+            }
+        }
+        .sheet(item: $editingMeaning) { meaning in
+            MeaningEditSheet(title: "Edit Meaning", initialDefinition: meaning.definition) { definition in
+                MeaningEditor.update(meaning, definition: definition)
+            }
+        }
     }
 }
 
@@ -66,6 +110,13 @@ struct WordDetailView: View {
             partOfSpeech: "noun",
             context: "used when booking a table, room, or seat",
             order: 0,
+            item: item
+        ),
+        Meaning(
+            definition: "a doubt about whether something is right",
+            partOfSpeech: "noun",
+            context: "used when you are not fully sure",
+            order: 1,
             item: item
         )
     ]
