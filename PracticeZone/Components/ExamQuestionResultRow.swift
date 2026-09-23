@@ -13,6 +13,11 @@ struct ExamQuestionResultRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
+                if let userAnswer = result.userAnswer, !userAnswer.isEmpty {
+                    Text(result.kind == .multipleChoice ? "Your answer: \(userAnswer)" : "Your sentence: \"\(userAnswer)\"")
+                        .font(.footnote)
+                }
+
                 if let feedback = result.feedback, !feedback.isEmpty {
                     Text(feedback)
                         .font(.footnote)
@@ -37,6 +42,7 @@ struct ExamQuestionResultRow: View {
             isCorrect: false,
             pointsEarned: 0,
             maxPoints: 1,
+            userAnswer: "The room is a light.",
             feedback: "Good use of \"light\" — just fix the grammar: \"a light\" should be \"light\".",
             correctedSentences: ["The room is light."]
         )

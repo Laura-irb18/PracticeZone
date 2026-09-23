@@ -3,7 +3,7 @@ import SwiftUI
 struct ProductionQuestionView: View {
     let word: String
     let meaning: String
-    let onResult: (PracticeFeedback) -> Void
+    let onResult: (String, PracticeFeedback) -> Void
 
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
@@ -44,7 +44,7 @@ struct ProductionQuestionView: View {
                   let generator,
                   generator.error == nil,
                   let result = generator.result else { return }
-            onResult(result)
+            onResult(sentence.trimmingCharacters(in: .whitespacesAndNewlines), result)
         }
     }
 
@@ -60,6 +60,6 @@ struct ProductionQuestionView: View {
     ProductionQuestionView(
         word: "reservation",
         meaning: "an arrangement to have something held for you in advance"
-    ) { _ in }
+    ) { _, _ in }
     .padding()
 }

@@ -55,14 +55,20 @@ final class ExamQuestionResult {
     /// for the same migration-safety reason as `feedback`.
     var correctedSentences: [String]?
 
+    /// What the user answered: the chosen option for multiple choice, or the submitted
+    /// sentence for production. Optional for the same migration-safety reason as `feedback`
+    /// (and nil for results saved before this field existed).
+    var userAnswer: String?
+
     var attempt: ExamAttempt?
 
-    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
+    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, userAnswer: String? = nil, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
         self.questionText = questionText
         self.kind = kind
         self.isCorrect = isCorrect
         self.pointsEarned = pointsEarned
         self.maxPoints = maxPoints
+        self.userAnswer = userAnswer
         self.feedback = feedback
         self.correctedSentences = correctedSentences
         self.attempt = attempt
