@@ -75,8 +75,9 @@ struct PracticeWordView: View {
         .safeAreaInset(edge: .bottom) {
             bottomBar
         }
-        .task {
-            guard generator == nil else { return }
+        .task(id: item.meaningSummary) {
+            guard generator?.isGenerating != true else { return }
+            if generator != nil { hasSubmitted = false }
             let newGenerator = PracticeFeedbackGenerator(
                 word: item.word,
                 meaning: item.meaningSummary
