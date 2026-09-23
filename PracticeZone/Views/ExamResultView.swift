@@ -17,7 +17,7 @@ struct ExamResultView: View {
             }
 
             Section("Questions") {
-                ForEach(attempt.questionResults) { result in
+                ForEach(attempt.sortedQuestionResults) { result in
                     ExamQuestionResultRow(result: result)
                 }
             }

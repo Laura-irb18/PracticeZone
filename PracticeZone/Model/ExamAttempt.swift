@@ -29,6 +29,10 @@ final class ExamAttempt {
         guard total > 0 else { return 0 }
         return Int((Double(earned) / Double(total) * 100).rounded())
     }
+
+    var sortedQuestionResults: [ExamQuestionResult] {
+        questionResults.sorted { ($0.order ?? 0) < ($1.order ?? 0) }
+    }
 }
 
 enum ExamQuestionKind: String, Codable {
@@ -59,6 +63,12 @@ final class ExamQuestionResult {
     /// sentence for production. Optional for the same migration-safety reason as `feedback`
     /// (and nil for results saved before this field existed).
     var userAnswer: String?
+
+    /// Position of the question in the exam (0-based). SwiftData doesn't keep the order
+    /// of a to-many relationship when it refetches from the store, so results are sorted
+    /// by this. Optional for the same migration-safety reason as `feedback` (and nil for
+    /// results saved before this field existed).
+    var order: Int?
 
     var attempt: ExamAttempt?
 

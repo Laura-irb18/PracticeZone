@@ -62,6 +62,7 @@ final class ExamSession {
     }
 
     private func advance(with result: ExamQuestionResult) {
+        result.order = currentIndex
         results.append(result)
         if currentIndex + 1 < questions.count {
             currentIndex += 1
