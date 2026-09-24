@@ -11,7 +11,12 @@ struct ExamsView: View {
                     NavigationLink {
                         ExamGroupDetailView(group: group)
                     } label: {
-                        Label(group.name, systemImage: group.iconName)
+                        Label {
+                            Text(group.name)
+                        } icon: {
+                            Image(systemName: group.iconName)
+                                .foregroundStyle(group.color.color)
+                        }
                     }
                 }
             }

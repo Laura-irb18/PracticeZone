@@ -14,7 +14,12 @@ struct WordGroupsView: View {
                     NavigationLink {
                         WordGroupDetailView(group: group)
                     } label: {
-                        Label(group.name, systemImage: group.iconName)
+                        Label {
+                            Text(group.name)
+                        } icon: {
+                            Image(systemName: group.iconName)
+                                .foregroundStyle(group.color.color)
+                        }
                     }
                 }
                 .onDelete(perform: deleteGroups)
@@ -30,17 +35,9 @@ struct WordGroupsView: View {
                 }
             }
             .sheet(isPresented: $isPresentingNewGroup) {
-                AddWordGroupSheet { name, description, icon in
-                    createGroup(name: name, description: description, icon: icon)
-                }
+                WordGroupEditorSheet(group: nil)
             }
         }
-    }
-
-    private func createGroup(name: String, description: String, icon: String) {
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
-        modelContext.insert(WordGroup(name: trimmedName, groupDescription: description, iconName: icon))
     }
 
     private func deleteGroups(at offsets: IndexSet) {
