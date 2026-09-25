@@ -4,7 +4,7 @@ import Playgrounds
 @Generable
 private struct DraftExamples {
     @Guide(description: "Natural English sentences, 6 to 12 words, that use the expression with exactly the given sense.", .count(2))
-    var examples: [GeneratedExample]
+    var examples: [ExampleSuggestion]
 }
 
 #Playground("5 · Examples for a meaning") {
