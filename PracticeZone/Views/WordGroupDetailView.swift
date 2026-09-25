@@ -70,7 +70,7 @@ struct WordGroupDetailView: View {
                 }
             }
         }
-        .navigationDestination(isPresented: $isAddingWord) {
+        .sheet(isPresented: $isAddingWord) {
             AddVocabularyItemView(group: group)
         }
         .sheet(isPresented: $isEditingGroup) {
