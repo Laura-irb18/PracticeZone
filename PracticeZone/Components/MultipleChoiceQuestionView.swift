@@ -16,34 +16,68 @@ struct MultipleChoiceQuestionView: View {
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 8) {
-                ForEach(options, id: \.self) { option in
-                    optionButton(option)
+                ForEach(Array(options.enumerated()), id: \.element) { index, option in
+                    optionButton(option, letter: Self.letter(for: index))
                 }
             }
-
-            if let selectedOption {
-                Button("Next") {
+        }
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(.systemGroupedBackground))
+        .safeAreaInset(edge: .bottom) {
+            BottomActionButton {
+                if let selectedOption {
                     onNext(selectedOption)
                 }
-                .buttonStyle(.borderedProminent)
+            } label: {
+                Text("Next")
             }
+            .disabled(selectedOption == nil)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
         }
     }
 
-    private func optionButton(_ option: String) -> some View {
+    /// "A", "B", "C", "D"… for the option at `index`.
+    private static func letter(for index: Int) -> String {
+        String(UnicodeScalar(UInt8(65 + index)))
+    }
+
+    private func optionButton(_ option: String, letter: String) -> some View {
         let isSelected = selectedOption == option
 
         return Button {
             selectedOption = option
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+                Text(letter)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(isSelected ? Color.white : Color.secondary)
+                    .frame(width: 32, height: 32)
+                    .background {
+                        ZStack {
+                            Circle()
+                                .fill(isSelected ? Color.accentColor : Color.clear)
+                            Circle()
+                                .strokeBorder(isSelected ? Color.accentColor : Color.secondary.opacity(0.4), lineWidth: 1.5)
+                        }
+                    }
+
                 Text(option)
+                    .foregroundStyle(.primary)
+
                 Spacer()
-                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
             }
+            .padding(12)
+            .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 20))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+            }
+            .contentShape(.rect(cornerRadius: 20))
         }
-        .buttonStyle(.bordered)
-        .foregroundStyle(isSelected ? Color.accentColor : .primary)
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -52,5 +86,4 @@ struct MultipleChoiceQuestionView: View {
         meaning: "an arrangement to have something held for you in advance",
         options: ["reservation", "light", "market", "delay"]
     ) { _ in }
-    .padding()
 }

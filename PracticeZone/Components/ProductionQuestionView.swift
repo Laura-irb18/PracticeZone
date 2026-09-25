@@ -4,34 +4,40 @@ struct ProductionQuestionView: View {
     let word: String
     let meaning: String
     let onResult: (String, PracticeFeedback) -> Void
+    let onSkip: (String) -> Void
 
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
-    @State private var hasSubmitted = false
+
+    private var trimmedSentence: String {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        Form {
+            Section {
+                TextField("Your sentence", text: $sentence, axis: .vertical)
+                    .disabled(generator?.isGenerating == true)
+            }
+
+            if let errorMessage = generator?.errorMessage {
+                Section {
+                    Label(errorMessage, systemImage: "xmark.circle")
+                        .foregroundStyle(.red)
+                } footer: {
+                    Text("Skipping counts as incorrect.")
+                }
+            }
+        }
+        .safeAreaInset(edge: .top) {
             Text("Write a sentence using \"\(word)\"")
                 .font(.headline)
-
-            TextField("Your sentence", text: $sentence, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
-                .disabled(generator?.isGenerating == true || hasSubmitted)
-
-            if let error = generator?.error {
-                Label(error.localizedDescription, systemImage: "xmark.circle")
-                    .foregroundStyle(.red)
-            }
-
-            if generator?.isGenerating == true {
-                ProgressView()
-            } else if !hasSubmitted {
-                Button("Submit") {
-                    submit()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+        }
+        .animation(.smooth, value: generator?.isGenerating)
+        .safeAreaInset(edge: .bottom) {
+            bottomBar
         }
         .task {
             guard generator == nil else { return }
@@ -44,22 +50,57 @@ struct ProductionQuestionView: View {
                   let generator,
                   generator.error == nil,
                   let result = generator.result else { return }
-            onResult(sentence.trimmingCharacters(in: .whitespacesAndNewlines), result)
+            onResult(trimmedSentence, result)
+        }
+        .onDisappear {
+            generator?.cancel()
         }
     }
 
+    private var bottomBar: some View {
+        let isChecking = generator?.isGenerating == true
+        let hasError = generator?.error != nil
+
+        return VStack(spacing: 8) {
+            BottomActionButton {
+                submit()
+            } label: {
+                if isChecking {
+                    Label("Checking grammar and meaning…", systemImage: "sparkles")
+                        .symbolEffect(.breathe)
+                } else {
+                    Text(hasError ? "Try Again" : "Submit")
+                }
+            }
+            .disabled(isChecking || trimmedSentence.isEmpty)
+
+            if hasError && !isChecking {
+                Button {
+                    onSkip(trimmedSentence)
+                } label: {
+                    Text("Skip Question")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+
     private func submit() {
-        let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, let generator else { return }
-        hasSubmitted = true
-        generator.generate(for: trimmed)
+        guard !trimmedSentence.isEmpty, let generator else { return }
+        generator.generate(for: trimmedSentence)
     }
 }
 
 #Preview {
     ProductionQuestionView(
         word: "reservation",
-        meaning: "an arrangement to have something held for you in advance"
-    ) { _, _ in }
-    .padding()
+        meaning: "an arrangement to have something held for you in advance",
+        onResult: { _, _ in },
+        onSkip: { _ in }
+    )
 }

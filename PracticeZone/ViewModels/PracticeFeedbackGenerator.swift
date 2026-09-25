@@ -11,8 +11,31 @@ final class PracticeFeedbackGenerator {
     var isGenerating = false
     var error: Error?
 
+    /// What the person sees when a check fails. `nil` while there is no error.
+    var errorMessage: String? {
+        guard let error else { return nil }
+        guard let languageError = error as? LanguageModelError else {
+            return "Couldn't check your sentence. Try again."
+        }
+        switch languageError {
+        case .guardrailViolation:
+            return "This sentence can't be checked because it touches a sensitive topic. Try a different one."
+        case .refusal:
+            return "The model couldn't check this sentence. Try writing a different one."
+        case .rateLimited, .timeout:
+            return "The model is busy right now. Wait a moment and try again."
+        case .contextSizeExceeded:
+            return "This sentence is too long to check. Try a shorter one."
+        case .unsupportedLanguageOrLocale:
+            return "The on-device model doesn't support this language."
+        default:
+            return "Couldn't check your sentence. Try again."
+        }
+    }
+
     private let grammarSession: LanguageModelSession
     private let meaningSession: LanguageModelSession
+    private var task: Task<Void, Never>?
 
     init(word: String, meaning: String) {
         self.word = word
@@ -55,10 +78,11 @@ final class PracticeFeedbackGenerator {
     }
 
     func generate(for sentence: String) {
+        task?.cancel()
         result = nil
         error = nil
 
-        Task {
+        task = Task {
             isGenerating = true
             do {
                 async let grammarResponse = grammarSession.respond(
@@ -88,9 +112,16 @@ final class PracticeFeedbackGenerator {
                 let (grammar, meaningResult) = try await (grammarResponse.content, meaningResponse.content)
                 result = PracticeFeedback(word: word, sentence: sentence, grammar: grammar, meaning: meaningResult)
             } catch {
-                self.error = error
+                // A cancelled check (the user left the question) isn't an error to show.
+                if !Task.isCancelled, !(error is CancellationError) {
+                    self.error = error
+                }
             }
             isGenerating = false
         }
+    }
+
+    func cancel() {
+        task?.cancel()
     }
 }

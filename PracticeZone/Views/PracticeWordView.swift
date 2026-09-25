@@ -35,9 +35,9 @@ struct PracticeWordView: View {
             }
 
             if hasSubmitted, let generator {
-                if let error = generator.error {
+                if let errorMessage = generator.errorMessage {
                     Section {
-                        Label(error.localizedDescription, systemImage: "xmark.circle")
+                        Label(errorMessage, systemImage: "xmark.circle")
                             .foregroundStyle(.red)
                     }
                 } else if let result = generator.result {
@@ -117,28 +117,22 @@ struct PracticeWordView: View {
         let showsTryAgain = hasSubmitted && generator?.result != nil && !isChecking
         let hasSentence = !sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
-        return Button {
+        return BottomActionButton {
             if showsTryAgain {
                 reset()
             } else {
                 submit()
             }
         } label: {
-            Group {
-                if isChecking {
-                    Label("Checking grammar and meaning…", systemImage: "sparkles")
-                        .symbolEffect(.breathe)
-                } else if showsTryAgain {
-                    Text("Try Another Sentence")
-                } else {
-                    Text("Check Sentence")
-                }
+            if isChecking {
+                Label("Checking grammar and meaning…", systemImage: "sparkles")
+                    .symbolEffect(.breathe)
+            } else if showsTryAgain {
+                Text("Try Another Sentence")
+            } else {
+                Text("Check Sentence")
             }
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
         .disabled(isChecking || (!showsTryAgain && !hasSentence))
         .padding(.horizontal)
         .padding(.bottom, 8)
