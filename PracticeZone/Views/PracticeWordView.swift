@@ -4,15 +4,29 @@ import SwiftData
 struct PracticeWordView: View {
     let item: VocabularyItem
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
 
     var body: some View {
+        NavigationStack {
+            content
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(role: .close) {
+                            dismiss()
+                        }
+                    }
+                }
+        }
+    }
+
+    private var content: some View {
         Form {
             Section {
-                WordDetailView(item: item)
+                WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
             }
 
             Section("Your sentence") {
@@ -28,8 +42,11 @@ struct PracticeWordView: View {
                     }
                 } else if let result = generator.result {
                     Section("Feedback") {
-                        Label(result.isCorrect ? "Correct" : "Needs work", systemImage: result.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .foregroundStyle(result.isCorrect ? .green : .red)
+                        Label(
+                            result.isCorrect ? "Correct" : "Needs work",
+                            systemImage: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
+                        )
+                        .foregroundStyle(result.isCorrect ? .green : .orange)
                         Text(result.feedback)
                         ForEach(result.correctedSentences, id: \.self) { corrected in
                             Text(corrected)
@@ -48,8 +65,8 @@ struct PracticeWordView: View {
                     ForEach(item.sortedPracticeAttempts) { attempt in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundStyle(attempt.isCorrect ? .green : .red)
+                                Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                    .foregroundStyle(attempt.isCorrect ? .green : .orange)
                                 Text(attempt.sentence)
                                     .font(.subheadline)
                             }
@@ -71,6 +88,7 @@ struct PracticeWordView: View {
                 }
             }
         }
+        .animation(.smooth, value: generator?.isGenerating)
         .navigationTitle("Practice")
         .safeAreaInset(edge: .bottom) {
             bottomBar
@@ -94,33 +112,36 @@ struct PracticeWordView: View {
         }
     }
 
-    @ViewBuilder
     private var bottomBar: some View {
-        if generator?.isGenerating == true {
-            ProgressView()
-                .padding()
-        } else if hasSubmitted, generator?.result != nil {
-            Button {
+        let isChecking = generator?.isGenerating == true
+        let showsTryAgain = hasSubmitted && generator?.result != nil && !isChecking
+        let hasSentence = !sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        return Button {
+            if showsTryAgain {
                 reset()
-            } label: {
-                Label("Try Another Sentence", systemImage: "arrow.counterclockwise")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .padding()
-        } else {
-            Button {
+            } else {
                 submit()
-            } label: {
-                Label("Check Sentence", systemImage: "checkmark")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .padding()
+        } label: {
+            Group {
+                if isChecking {
+                    Label("Checking grammar and meaning…", systemImage: "sparkles")
+                        .symbolEffect(.breathe)
+                } else if showsTryAgain {
+                    Text("Try Another Sentence")
+                } else {
+                    Text("Check Sentence")
+                }
+            }
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .disabled(isChecking || (!showsTryAgain && !hasSentence))
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 
     private func submit() {
@@ -158,12 +179,9 @@ struct PracticeWordView: View {
         Meaning(
             definition: "an arrangement to have something held for you in advance",
             partOfSpeech: "noun",
-            context: "used when booking a table, room, or seat",
             order: 0,
             item: item
         )
     ]
-    return NavigationStack {
-        PracticeWordView(item: item)
-    }
+    return PracticeWordView(item: item)
 }
