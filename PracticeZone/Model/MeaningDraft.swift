@@ -6,4 +6,5 @@ struct MeaningDraft: Identifiable {
     var translation = ""
     var partOfSpeech: PartOfSpeech?
     var examples: [ExampleDraft] = []
+    var isGenerated = false
 }
