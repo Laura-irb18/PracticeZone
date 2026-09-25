@@ -8,10 +8,36 @@ import SwiftUI
 @MainActor
 final class VocabularyItemEditorViewModel {
     var word = ""
+    var friendlyPronunciation = ""
     var meanings = [MeaningDraft()]
 
     private let maxMeanings = 5
     private let maxExamples = 3
+
+    private var item: VocabularyItem?
+
+    var isEditing: Bool { item != nil }
+
+    /// Fills the form with a saved word. `nil` leaves it empty, for a new word.
+    func load(_ item: VocabularyItem?) {
+        self.item = item
+        guard let item else { return }
+        word = item.word
+        friendlyPronunciation = item.friendlyPronunciation
+        meanings = item.sortedMeanings.map { meaning in
+            MeaningDraft(
+                definition: meaning.definition,
+                translation: meaning.translation,
+                partOfSpeech: PartOfSpeech(label: meaning.partOfSpeech),
+                examples: meaning.sortedExamples.map {
+                    ExampleDraft(text: $0.text, translation: $0.translation)
+                }
+            )
+        }
+        if meanings.isEmpty {
+            meanings = [MeaningDraft()]
+        }
+    }
 
     var hasWord: Bool {
         !trimmed(word).isEmpty
@@ -339,11 +365,42 @@ final class VocabularyItemEditorViewModel {
     var saveError: Error?
 
     /// Returns whether the word was saved, so the view only closes on success.
-    func save(to group: WordGroup, in modelContext: ModelContext) -> Bool {
+    func save(to group: WordGroup?, in modelContext: ModelContext) -> Bool {
         guard canSave else { return false }
-        let item = VocabularyItem(word: trimmed(word), friendlyPronunciation: "", wordGroup: group)
-        for (order, draft) in meanings.enumerated() {
-            let newMeaning = Meaning(
+        if let item {
+            item.word = trimmed(word)
+            item.friendlyPronunciation = trimmed(friendlyPronunciation)
+            // Replaced instead of matched one by one: nothing else points to a meaning or an example.
+            let oldMeanings = item.meanings
+            item.meanings = makeMeanings(for: item)
+            for meaning in oldMeanings {
+                modelContext.delete(meaning)
+            }
+        } else {
+            guard let group else { return false }
+            let item = VocabularyItem(
+                word: trimmed(word),
+                friendlyPronunciation: trimmed(friendlyPronunciation),
+                wordGroup: group
+            )
+            item.meanings = makeMeanings(for: item)
+            modelContext.insert(item)
+            group.items.append(item)
+        }
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            // Undo the pending changes so a retry starts from what is saved.
+            modelContext.rollback()
+            saveError = error
+            return false
+        }
+    }
+
+    private func makeMeanings(for item: VocabularyItem) -> [Meaning] {
+        meanings.enumerated().map { order, draft in
+            let meaning = Meaning(
                 definition: trimmed(draft.definition),
                 translation: trimmed(draft.translation),
                 partOfSpeech: (draft.partOfSpeech ?? .other).label,
@@ -351,26 +408,15 @@ final class VocabularyItemEditorViewModel {
                 item: item
             )
             let filledExamples = draft.examples.filter { !trimmed($0.text).isEmpty }
-            for (index, example) in filledExamples.enumerated() {
-                newMeaning.examples.append(Example(
+            meaning.examples = filledExamples.enumerated().map { index, example in
+                Example(
                     text: trimmed(example.text),
                     translation: trimmed(example.translation),
                     order: index,
-                    meaning: newMeaning
-                ))
+                    meaning: meaning
+                )
             }
-            item.meanings.append(newMeaning)
-        }
-        modelContext.insert(item)
-        group.items.append(item)
-        do {
-            try modelContext.save()
-            return true
-        } catch {
-            // Undo the insert so a retry doesn't create a duplicate.
-            modelContext.delete(item)
-            saveError = error
-            return false
+            return meaning
         }
     }
 

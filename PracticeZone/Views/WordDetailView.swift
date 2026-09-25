@@ -1,97 +1,64 @@
 import SwiftUI
 import SwiftData
 
-/// Detail of a saved word, sharing the exact layout used while a word is being generated.
-/// The pronunciation field is manual — Foundation Models no longer generates it.
 struct WordDetailView: View {
-    @Bindable var item: VocabularyItem
-    @Environment(\.modelContext) private var modelContext
-    @State private var isAddingMeaning = false
-    @State private var editingMeaning: Meaning?
+    let item: VocabularyItem
+
+    @Environment(\.aiStatus) private var aiStatus
+
+    @State private var isPracticing = false
+    @State private var isEditing = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Text(item.word)
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                SpeakButton(text: item.word)
-                    .font(.title2)
+        List {
+            Section {
+                WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Pronunciation")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextField("Add your own pronunciation", text: $item.friendlyPronunciation)
-                    .font(.title3)
-                    .textFieldStyle(.roundedBorder)
-                    .autocorrectionDisabled()
-                    #if os(iOS)
-                    .textInputAutocapitalization(.never)
-                    #endif
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Meanings")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                ForEach(Array(item.sortedMeanings.enumerated()), id: \.element.id) { index, meaning in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(alignment: .firstTextBaseline) {
-                            if item.meanings.count > 1 {
-                                Button {
-                                    MeaningEditor.makePrimary(meaning, in: item)
-                                } label: {
-                                    Image(systemName: index == 0 ? "star.fill" : "star")
-                                        .foregroundStyle(index == 0 ? .yellow : .secondary)
-                                }
-                                .buttonStyle(.borderless)
-                                .accessibilityLabel(index == 0 ? "Main meaning" : "Mark as main meaning")
-                            }
-                            MeaningRow(
-                                definition: meaning.definition,
-                                partOfSpeech: meaning.partOfSpeech
-                            )
-                            Spacer(minLength: 0)
-                            Menu {
-                                Button("Edit", systemImage: "pencil") {
-                                    editingMeaning = meaning
-                                }
-                                if item.meanings.count > 1 {
-                                    Button("Delete", systemImage: "trash", role: .destructive) {
-                                        MeaningEditor.delete(meaning, from: item, in: modelContext)
-                                    }
-                                }
-                            } label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .buttonStyle(.borderless)
-                            .accessibilityLabel("Meaning options")
-                        }
-                        ForEach(meaning.sortedExamples) { example in
-                            ExampleRow(text: example.text, translation: example.translation)
-                        }
-                        .padding(.leading)
+            ForEach(Array(item.sortedMeanings.enumerated()), id: \.element.id) { index, meaning in
+                Section("Meaning \(index + 1)") {
+                    MeaningRow(
+                        definition: meaning.definition,
+                        translation: meaning.translation,
+                        partOfSpeech: meaning.partOfSpeech
+                    )
+                    ForEach(meaning.sortedExamples) { example in
+                        ExampleRow(text: example.text, translation: example.translation)
                     }
                 }
-                Button("Add Meaning", systemImage: "plus") {
-                    isAddingMeaning = true
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 8) {
+                if !aiStatus.isAvailable {
+                    AIUnavailableNote(message: aiStatus.practiceMessage)
                 }
-                .buttonStyle(.borderless)
+                Button {
+                    isPracticing = true
+                } label: {
+                    Text("Practice")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(!aiStatus.isAvailable)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Edit") {
+                    isEditing = true
+                }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .sheet(isPresented: $isAddingMeaning) {
-            MeaningEditSheet(title: "New Meaning", initialDefinition: "") { definition in
-                MeaningEditor.add(definition: definition, to: item)
-            }
+        .sheet(isPresented: $isPracticing) {
+            PracticeWordView(item: item)
         }
-        .sheet(item: $editingMeaning) { meaning in
-            MeaningEditSheet(title: "Edit Meaning", initialDefinition: meaning.definition) { definition in
-                MeaningEditor.update(meaning, definition: definition)
-            }
+        .sheet(isPresented: $isEditing) {
+            VocabularyItemEditorSheet(group: nil, item: item)
         }
     }
 }
@@ -100,6 +67,7 @@ struct WordDetailView: View {
     let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon")
     let booking = Meaning(
         definition: "an arrangement to have something held for you in advance",
+        translation: "reserva",
         partOfSpeech: "noun",
         order: 0,
         item: item
@@ -116,11 +84,13 @@ struct WordDetailView: View {
         booking,
         Meaning(
             definition: "a doubt about whether something is right",
+            translation: "reserva, duda",
             partOfSpeech: "noun",
             order: 1,
             item: item
         )
     ]
-    return WordDetailView(item: item)
-        .padding()
+    return NavigationStack {
+        WordDetailView(item: item)
+    }
 }

@@ -44,6 +44,7 @@ struct WordGroupsView: View {
         for index in offsets {
             modelContext.delete(wordGroups[index])
         }
+        try? modelContext.save()
     }
 }
 

@@ -3,12 +3,10 @@ import SwiftData
 
 struct WordGroupDetailView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
     @Bindable var group: WordGroup
 
     @State private var isEditingGroup = false
     @State private var isAddingWord = false
-    @State private var isConfirmingDelete = false
 
     var body: some View {
         List {
@@ -32,9 +30,9 @@ struct WordGroupDetailView: View {
                 }
             } else {
                 Section("Words") {
-                    ForEach(group.items) { item in
+                    ForEach(group.sortedItems) { item in
                         NavigationLink {
-                            PracticeWordView(item: item)
+                            WordDetailView(item: item)
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(item.word)
@@ -54,41 +52,30 @@ struct WordGroupDetailView: View {
                 Button("Add Word", systemImage: "plus") {
                     isAddingWord = true
                 }
-                .buttonStyle(.glassProminent)
+//                .buttonStyle(.glassProminent)
             }
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
-                Menu("More", systemImage: "ellipsis") {
-                    Button("Edit Group", systemImage: "pencil") {
-                        isEditingGroup = true
-                    }
-                    Divider()
-                    Button("Delete Group", systemImage: "trash", role: .destructive) {
-                        isConfirmingDelete = true
-                    }
+                Button("Edit") {
+                    isEditingGroup = true
                 }
             }
+        
         }
         .sheet(isPresented: $isAddingWord) {
-            AddVocabularyItemView(group: group)
+            VocabularyItemEditorSheet(group: group, item: nil)
         }
         .sheet(isPresented: $isEditingGroup) {
             WordGroupEditorSheet(group: group)
         }
-        .confirmationDialog("Delete \"\(group.name)\"?", isPresented: $isConfirmingDelete, titleVisibility: .visible) {
-            Button("Delete Group", role: .destructive) {
-                dismiss()
-                modelContext.delete(group)
-            }
-        } message: {
-            Text("Its words and exam history will be deleted too.")
-        }
     }
 
     private func deleteItems(at offsets: IndexSet) {
+        let items = group.sortedItems
         for index in offsets {
-            modelContext.delete(group.items[index])
+            modelContext.delete(items[index])
         }
+        try? modelContext.save()
     }
 }
 

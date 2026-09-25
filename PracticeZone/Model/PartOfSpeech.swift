@@ -10,6 +10,11 @@ enum PartOfSpeech: CaseIterable {
     case preposition
     case other
 
+    init?(label: String) {
+        guard let match = Self.allCases.first(where: { $0.label == label }) else { return nil }
+        self = match
+    }
+
     var label: String {
         switch self {
         case .noun: "noun"

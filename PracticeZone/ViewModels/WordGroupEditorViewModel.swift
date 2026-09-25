@@ -25,8 +25,11 @@ final class WordGroupEditorViewModel {
         iconName = group.iconName
     }
 
-    func save(in modelContext: ModelContext) {
-        guard canSave else { return }
+    var saveError: Error?
+
+    /// Returns whether the group was saved, so the view only closes on success.
+    func save(in modelContext: ModelContext) -> Bool {
+        guard canSave else { return false }
         let trimmedDescription = groupDescription.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if let group {
@@ -36,6 +39,15 @@ final class WordGroupEditorViewModel {
             group.iconName = iconName
         } else {
             modelContext.insert(WordGroup(name: trimmedName, groupDescription: trimmedDescription, iconName: iconName, color: color))
+        }
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            // Undo the pending changes so a retry starts from what is saved.
+            modelContext.rollback()
+            saveError = error
+            return false
         }
     }
 

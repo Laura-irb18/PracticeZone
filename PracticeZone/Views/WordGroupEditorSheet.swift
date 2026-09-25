@@ -44,14 +44,26 @@ struct WordGroupEditorSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(role: .confirm) {
-                        viewModel.save(in: modelContext)
-                        dismiss()
+                        if viewModel.save(in: modelContext) {
+                            dismiss()
+                        }
                     }
                     .disabled(!viewModel.canSave)
                 }
             }
             .onAppear {
                 viewModel.load(group)
+            }
+            .alert(
+                "Couldn't save the group",
+                isPresented: Binding(
+                    get: { viewModel.saveError != nil },
+                    set: { if !$0 { viewModel.saveError = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(viewModel.saveError?.localizedDescription ?? "")
             }
         }
     }

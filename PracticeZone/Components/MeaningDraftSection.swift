@@ -4,6 +4,8 @@ struct MeaningDraftSection: View {
     @Binding var meaning: MeaningDraft
     let viewModel: VocabularyItemEditorViewModel
 
+    @Environment(\.aiStatus) private var aiStatus
+
     @State private var isConfirmingRegenerate = false
 
     private var isPrimary: Bool { viewModel.isPrimary(meaning) }
@@ -14,15 +16,15 @@ struct MeaningDraftSection: View {
     /// Only one ✨ per meaning card, in the field the next step fills.
     /// While generating, the icon stays where it started.
     private var showsDefinitionButton: Bool {
-        isGeneratingMeaning || (isPrimary && !isTranslating && step != .needsTranslation)
+        aiStatus.isAvailable && (isGeneratingMeaning || (isPrimary && !isTranslating && step != .needsTranslation))
     }
 
     private var showsTranslationButton: Bool {
-        isTranslating || (!isGeneratingMeaning && step == .needsTranslation)
+        aiStatus.isAvailable && (isTranslating || (!isGeneratingMeaning && step == .needsTranslation))
     }
 
     private var showsExamplesButton: Bool {
-        step != .needsDefinition
+        aiStatus.isAvailable && step != .needsDefinition
     }
 
     private var canRegenerate: Bool {
@@ -106,7 +108,7 @@ struct MeaningDraftSection: View {
                 HStack {
                     TextField(isGeneratingThis ? "Generating an example…" : "Example sentence", text: $example.text, axis: .vertical)
                         .disabled(isGeneratingThis)
-                    if isGeneratingThis || example.isGenerated {
+                    if aiStatus.isAvailable && (isGeneratingThis || example.isGenerated) {
                         Button(
                             isGeneratingThis ? "Stop Generating" : "Regenerate Example",
                             systemImage: isGeneratingThis ? "sparkles" : "arrow.counterclockwise"
@@ -175,7 +177,9 @@ struct MeaningDraftSection: View {
     @ViewBuilder
     private var meaningHint: some View {
         let sparkles = Text(Image(systemName: "sparkles")).foregroundStyle(.tint)
-        if isGeneratingMeaning {
+        if !aiStatus.isAvailable {
+            Text(step == .needsDefinition ? "Required." : "")
+        } else if isGeneratingMeaning {
             Text("Generating the meaning… Tap \(sparkles) to stop.")
         } else if isTranslating {
             Text("Translating… Tap \(sparkles) to stop.")
@@ -202,7 +206,9 @@ struct MeaningDraftSection: View {
     @ViewBuilder
     private var examplesHint: some View {
         let sparkles = Text(Image(systemName: "sparkles")).foregroundStyle(.tint)
-        if viewModel.isGeneratingExample(in: meaning) {
+        if !aiStatus.isAvailable {
+            EmptyView()
+        } else if viewModel.isGeneratingExample(in: meaning) {
             Text("Generating an example… Tap \(sparkles) to stop.")
         } else {
             switch step {

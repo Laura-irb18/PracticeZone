@@ -1,23 +1,32 @@
 import SwiftUI
 import SwiftData
 
-struct AddVocabularyItemView: View {
+struct VocabularyItemEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.aiStatus) private var aiStatus
 
     @State private var viewModel = VocabularyItemEditorViewModel()
 
-    let group: WordGroup
+    let group: WordGroup?
+    let item: VocabularyItem?
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Vocabulary", text: $viewModel.word, axis: .vertical)
+                    TextField("Vocabulary", text: $viewModel.word)
                         .onChange(of: viewModel.word) { oldValue, newValue in
                             viewModel.wordChanged(from: oldValue, to: newValue)
                         }
 //                        .autocorrectionDisabled()
+                    TextField("Friendly Pronunciation (optional)", text: $viewModel.friendlyPronunciation)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                } footer: {
+                    if !aiStatus.isAvailable {
+                        AIUnavailableNote(message: aiStatus.message)
+                    }
                 }
 
                 ForEach($viewModel.meanings) { $meaning in
@@ -32,7 +41,7 @@ struct AddVocabularyItemView: View {
                     }
                 }
             }
-            .navigationTitle("New Word")
+            .navigationTitle(viewModel.isEditing ? "Edit Word" : "New Word")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel) {
@@ -71,6 +80,9 @@ struct AddVocabularyItemView: View {
                 Text(viewModel.saveError?.localizedDescription ?? "")
             }
         }
+        .onAppear {
+            viewModel.load(item)
+        }
         .onDisappear {
             viewModel.cancelGeneration()
         }
@@ -81,6 +93,6 @@ struct AddVocabularyItemView: View {
     let container = try! ModelContainer(for: WordGroup.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     let group = WordGroup(name: "Travel")
     container.mainContext.insert(group)
-    return AddVocabularyItemView(group: group)
+    return VocabularyItemEditorSheet(group: group, item: nil)
         .modelContainer(container)
 }

@@ -3,6 +3,7 @@ import SwiftData
 
 struct ExamGroupDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.aiStatus) private var aiStatus
     let group: WordGroup
 
     var body: some View {
@@ -13,6 +14,8 @@ struct ExamGroupDetailView: View {
                 } label: {
                     Label("Start Exam", systemImage: "pencil.and.list.clipboard")
                 }
+                // ExamsView already hides groups without AI; this covers losing it while here.
+                .disabled(!aiStatus.isAvailable)
             }
 
             if !group.sortedExamAttempts.isEmpty {
