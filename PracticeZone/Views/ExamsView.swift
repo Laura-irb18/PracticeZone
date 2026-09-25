@@ -15,7 +15,6 @@ struct ExamsView: View {
                             Text(group.name)
                         } icon: {
                             Image(systemName: group.iconName)
-                                .foregroundStyle(group.color.color)
                         }
                     }
                 }

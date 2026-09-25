@@ -21,7 +21,7 @@ struct WordGroupEditorSheet: View {
                     )
                 }
                 .listRowBackground(Color.clear)
-//                .listRowInsets(EdgeInsets())
+
 
                 Section("") {
                     TextField("Group name", text: $viewModel.name)
@@ -47,7 +47,6 @@ struct WordGroupEditorSheet: View {
                         viewModel.save(in: modelContext)
                         dismiss()
                     }
-                    .tint(viewModel.color.color)
                     .disabled(!viewModel.canSave)
                 }
             }

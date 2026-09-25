@@ -55,7 +55,6 @@ struct WordGroupDetailView: View {
                     isAddingWord = true
                 }
                 .buttonStyle(.glassProminent)
-                .tint(group.color.color)
             }
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
@@ -84,7 +83,6 @@ struct WordGroupDetailView: View {
         } message: {
             Text("Its words and exam history will be deleted too.")
         }
-        .tint(group.color.color)
     }
 
     private func deleteItems(at offsets: IndexSet) {
