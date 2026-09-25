@@ -9,7 +9,7 @@ enum MeaningEditor {
         let trimmed = definition.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         let nextOrder = (item.meanings.map(\.order).max() ?? -1) + 1
-        let meaning = Meaning(definition: trimmed, partOfSpeech: "", context: "", order: nextOrder, item: item)
+        let meaning = Meaning(definition: trimmed, partOfSpeech: "", order: nextOrder, item: item)
         item.meanings.append(meaning)
     }
 

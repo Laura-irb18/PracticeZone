@@ -66,7 +66,6 @@ struct ExamTakingView: View {
         Meaning(
             definition: "an arrangement to have something held for you in advance",
             partOfSpeech: "noun",
-            context: "used when booking a table, room, or seat",
             order: 0,
             item: item
         )

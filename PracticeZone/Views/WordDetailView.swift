@@ -37,55 +37,49 @@ struct WordDetailView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 ForEach(Array(item.sortedMeanings.enumerated()), id: \.element.id) { index, meaning in
-                    HStack(alignment: .firstTextBaseline) {
-                        if item.meanings.count > 1 {
-                            Button {
-                                MeaningEditor.makePrimary(meaning, in: item)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .firstTextBaseline) {
+                            if item.meanings.count > 1 {
+                                Button {
+                                    MeaningEditor.makePrimary(meaning, in: item)
+                                } label: {
+                                    Image(systemName: index == 0 ? "star.fill" : "star")
+                                        .foregroundStyle(index == 0 ? .yellow : .secondary)
+                                }
+                                .buttonStyle(.borderless)
+                                .accessibilityLabel(index == 0 ? "Main meaning" : "Mark as main meaning")
+                            }
+                            MeaningRow(
+                                definition: meaning.definition,
+                                partOfSpeech: meaning.partOfSpeech
+                            )
+                            Spacer(minLength: 0)
+                            Menu {
+                                Button("Edit", systemImage: "pencil") {
+                                    editingMeaning = meaning
+                                }
+                                if item.meanings.count > 1 {
+                                    Button("Delete", systemImage: "trash", role: .destructive) {
+                                        MeaningEditor.delete(meaning, from: item, in: modelContext)
+                                    }
+                                }
                             } label: {
-                                Image(systemName: index == 0 ? "star.fill" : "star")
-                                    .foregroundStyle(index == 0 ? .yellow : .secondary)
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundStyle(.secondary)
                             }
                             .buttonStyle(.borderless)
-                            .accessibilityLabel(index == 0 ? "Main meaning" : "Mark as main meaning")
+                            .accessibilityLabel("Meaning options")
                         }
-                        MeaningRow(
-                            definition: meaning.definition,
-                            partOfSpeech: meaning.partOfSpeech,
-                            context: meaning.context
-                        )
-                        Spacer(minLength: 0)
-                        Menu {
-                            Button("Edit", systemImage: "pencil") {
-                                editingMeaning = meaning
-                            }
-                            if item.meanings.count > 1 {
-                                Button("Delete", systemImage: "trash", role: .destructive) {
-                                    MeaningEditor.delete(meaning, from: item, in: modelContext)
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundStyle(.secondary)
+                        ForEach(meaning.sortedExamples) { example in
+                            ExampleRow(text: example.text, translation: example.translation)
                         }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Meaning options")
+                        .padding(.leading)
                     }
                 }
                 Button("Add Meaning", systemImage: "plus") {
                     isAddingMeaning = true
                 }
                 .buttonStyle(.borderless)
-            }
-
-            if !item.examples.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Examples")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ForEach(item.examples) { example in
-                        ExampleRow(text: example.text, translation: example.translation)
-                    }
-                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -104,26 +98,26 @@ struct WordDetailView: View {
 
 #Preview {
     let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon")
-    item.meanings = [
-        Meaning(
-            definition: "an arrangement to have something held for you in advance",
-            partOfSpeech: "noun",
-            context: "used when booking a table, room, or seat",
-            order: 0,
-            item: item
-        ),
-        Meaning(
-            definition: "a doubt about whether something is right",
-            partOfSpeech: "noun",
-            context: "used when you are not fully sure",
-            order: 1,
-            item: item
-        )
-    ]
-    item.examples = [
+    let booking = Meaning(
+        definition: "an arrangement to have something held for you in advance",
+        partOfSpeech: "noun",
+        order: 0,
+        item: item
+    )
+    booking.examples = [
         Example(
             text: "We made a reservation for dinner at eight.",
             translation: "Hicimos una reserva para cenar a las ocho.",
+            order: 0,
+            meaning: booking
+        )
+    ]
+    item.meanings = [
+        booking,
+        Meaning(
+            definition: "a doubt about whether something is right",
+            partOfSpeech: "noun",
+            order: 1,
             item: item
         )
     ]

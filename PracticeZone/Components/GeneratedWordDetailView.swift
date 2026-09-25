@@ -23,8 +23,7 @@ struct GeneratedWordDetailView: View {
                     ForEach(Array(meanings.enumerated()), id: \.offset) { _, meaning in
                         MeaningRow(
                             definition: meaning.definition ?? "Generating...",
-                            partOfSpeech: meaning.partOfSpeech.map(String.init(describing:)) ?? "",
-                            context: meaning.context ?? ""
+                            partOfSpeech: meaning.partOfSpeech.map(String.init(describing:)) ?? ""
                         )
                     }
                 } else {

@@ -12,7 +12,6 @@ final class VocabularyItemSaver {
     private struct MeaningEntry {
         let definition: String
         let partOfSpeech: String
-        let context: String
     }
 
     /// Attempts to save the generated vocabulary for `word` into `group`. Returns
@@ -45,20 +44,23 @@ final class VocabularyItemSaver {
             let meaning = Meaning(
                 definition: entry.definition,
                 partOfSpeech: entry.partOfSpeech,
-                context: entry.context,
                 order: index,
                 item: item
             )
             item.meanings.append(meaning)
         }
 
-        for generatedExample in generated.examples ?? [] {
-            let example = Example(
-                text: generatedExample.text ?? "",
-                translation: generatedExample.translation ?? "",
-                item: item
-            )
-            item.examples.append(example)
+        // Generation doesn't tie examples to a meaning yet, so they all go under the main one.
+        if let mainMeaning = item.sortedMeanings.first {
+            for (index, generatedExample) in (generated.examples ?? []).enumerated() {
+                let example = Example(
+                    text: generatedExample.text ?? "",
+                    translation: generatedExample.translation ?? "",
+                    order: index,
+                    meaning: mainMeaning
+                )
+                mainMeaning.examples.append(example)
+            }
         }
 
         modelContext.insert(item)
@@ -76,8 +78,7 @@ final class VocabularyItemSaver {
             seen.insert(key)
             result.append(MeaningEntry(
                 definition: definition,
-                partOfSpeech: entry.partOfSpeech.map(String.init(describing:)) ?? "other",
-                context: entry.context ?? ""
+                partOfSpeech: entry.partOfSpeech?.label ?? "other"
             ))
         }
         return result
