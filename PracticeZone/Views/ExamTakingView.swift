@@ -67,7 +67,7 @@ struct ExamTakingView: View {
                     .padding(.horizontal)
             }
         case .production:
-            ProductionQuestionView(word: question.word, meaning: question.meaning) { sentence, feedback in
+            ProductionQuestionView(word: question.word) { sentence, feedback in
                 session.recordProduction(sentence: sentence, feedback: feedback)
             } onSkip: { sentence in
                 session.skipProduction(sentence: sentence)

@@ -108,13 +108,10 @@ struct PracticeWordView: View {
         .safeAreaInset(edge: .bottom) {
             bottomBar
         }
-        .task(id: item.meaningSummary) {
+        .task(id: item.word) {
             guard generator?.isGenerating != true else { return }
             if generator != nil { hasSubmitted = false }
-            let newGenerator = PracticeFeedbackGenerator(
-                word: item.word,
-                meaning: item.meaningSummary
-            )
+            let newGenerator = PracticeFeedbackGenerator()
             generator = newGenerator
             newGenerator.prewarm()
         }

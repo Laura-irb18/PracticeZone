@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProductionQuestionView: View {
     let word: String
-    let meaning: String
     let onResult: (String, PracticeFeedback) -> Void
     let onSkip: (String) -> Void
 
@@ -53,7 +52,7 @@ struct ProductionQuestionView: View {
         }
         .task {
             guard generator == nil else { return }
-            let newGenerator = PracticeFeedbackGenerator(word: word, meaning: meaning)
+            let newGenerator = PracticeFeedbackGenerator()
             generator = newGenerator
             newGenerator.prewarm()
         }
@@ -111,7 +110,6 @@ struct ProductionQuestionView: View {
 #Preview {
     ProductionQuestionView(
         word: "reservation",
-        meaning: "an arrangement to have something held for you in advance",
         onResult: { _, _ in },
         onSkip: { _ in }
     )

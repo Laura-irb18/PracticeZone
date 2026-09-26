@@ -8,9 +8,6 @@ final class PracticeFeedbackGenerator {
     /// response cap, and one practice sentence never needs more.
     static let maxSentenceLength = 200
 
-    let word: String
-    let meaning: String
-
     var result: PracticeFeedback?
     var isGenerating = false
     var error: Error?
@@ -42,9 +39,7 @@ final class PracticeFeedbackGenerator {
     private var session: LanguageModelSession
     private var task: Task<Void, Never>?
 
-    init(word: String, meaning: String) {
-        self.word = word
-        self.meaning = meaning
+    init() {
         self.session = LanguageModelSession(instructions: Self.instructions)
     }
 
