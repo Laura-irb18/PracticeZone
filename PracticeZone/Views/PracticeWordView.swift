@@ -82,6 +82,7 @@ struct PracticeWordView: View {
                             HStack {
                                 Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                                     .foregroundStyle(attempt.isCorrect ? .green : .orange)
+                                    .accessibilityLabel(attempt.isCorrect ? "Correct" : "Needs work")
                                 Text(attempt.sentence)
                                     .font(.subheadline)
                             }

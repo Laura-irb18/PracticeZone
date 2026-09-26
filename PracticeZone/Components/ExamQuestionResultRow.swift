@@ -7,6 +7,7 @@ struct ExamQuestionResultRow: View {
         HStack(alignment: .top) {
             Image(systemName: result.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .foregroundStyle(result.isCorrect ? .green : .red)
+                .accessibilityLabel(result.isCorrect ? "Correct" : "Incorrect")
             VStack(alignment: .leading, spacing: 4) {
                 Text(result.questionText)
                 Text(result.kind == .multipleChoice ? "Multiple choice" : "Production")
