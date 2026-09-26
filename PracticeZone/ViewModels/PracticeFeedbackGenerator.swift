@@ -54,9 +54,9 @@ final class PracticeFeedbackGenerator {
     private static var grammarInstructions: Instructions {
         Instructions {
             """
-            You check English sentences written by a language learner for grammar and \
-            spelling mistakes only. Ignore meaning, ignore capitalization, ignore punctuation. \
-            If you are not sure there is a mistake, say there is none.
+            You are an English teacher. Check the student's sentence for grammar and \
+            spelling mistakes only. Give the corrected sentence, or the same sentence if \
+            it is correct.
             """
         }
     }
@@ -100,12 +100,7 @@ final class PracticeFeedbackGenerator {
                     // The cap turns a runaway generation into an error instead of a hang.
                     options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
                 ) {
-                    "Here are three examples of the output. Follow their style, but do not copy their content:"
-                    GrammarCheckResult.exampleCorrect
-                    GrammarCheckResult.exampleMistake
-                    GrammarCheckResult.exampleTwoCorrections
-
-                    "Sentence: \"\(sentence)\""
+                    sentence
                 }
 
                 async let meaningResponse = meaningSession.respond(

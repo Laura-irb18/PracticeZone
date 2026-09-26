@@ -6,35 +6,30 @@ struct PracticeFeedback {
     let correctedSentences: [String]
 
     init(word: String, sentence: String, grammar: GrammarCheckResult, meaning: MeaningCheckResult) {
-        let grammarOK = grammar.mistake.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "none"
+        let corrected = grammar.correctedSentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Changes in case or punctuation only ("Last summer, we…") don't count as mistakes.
+        let grammarOK = corrected.isEmpty || Self.comparable(corrected) == Self.comparable(sentence)
         self.isCorrect = grammarOK && meaning.isCorrect
-        // The second correction the model offers often rewords the sentence or changes its meaning.
-        self.correctedSentences = grammarOK ? [] : Array(Self.dedupedCorrections(grammar.correctedSentences).prefix(1))
+        self.correctedSentences = grammarOK ? [] : [corrected]
 
         switch (grammarOK, meaning.isCorrect) {
         case (true, true):
             self.feedback = "Well done — \"\(word)\" is used correctly and the sentence reads naturally."
         case (false, true):
-            self.feedback = "Good use of \"\(word)\" — just fix the grammar: \(grammar.mistake)"
+            self.feedback = "Good use of \"\(word)\" — check the corrected sentence below."
         case (true, false):
             self.feedback = "Grammar is fine, but check the meaning: \(meaning.senseUsed)"
         case (false, false):
-            self.feedback = "Two things to fix: \(grammar.mistake) Also, \(meaning.senseUsed)"
+            self.feedback = "Two things to fix: check the corrected sentence below. Also, \(meaning.senseUsed)"
         }
     }
 
-    private static func dedupedCorrections(_ sentences: [String]) -> [String] {
-        var seen = Set<String>()
-        var result: [String] = []
-        for raw in sentences {
-            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmed.isEmpty else { continue }
-            let key = trimmed.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "en"))
-            guard !seen.contains(key) else { continue }
-            seen.insert(key)
-            result.append(trimmed)
-        }
-        return result
+    /// Lowercased, punctuation removed, whitespace collapsed.
+    private static func comparable(_ text: String) -> String {
+        let scalars = text.lowercased().unicodeScalars.filter { !CharacterSet.punctuationCharacters.contains($0) }
+        return String(String.UnicodeScalarView(scalars))
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
     }
 }
 
