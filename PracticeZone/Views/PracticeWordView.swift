@@ -9,6 +9,7 @@ struct PracticeWordView: View {
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
+    @State private var motivationalPhrase = ""
 
     private var isTooLong: Bool {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
@@ -67,7 +68,7 @@ struct PracticeWordView: View {
                                 .italic()
                                 .foregroundStyle(.secondary)
                         }
-                        Text(MotivationalPhrase.random(isCorrect: result.isCorrect))
+                        Text(motivationalPhrase)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -122,6 +123,7 @@ struct PracticeWordView: View {
                   let generator,
                   generator.error == nil,
                   let result = generator.result else { return }
+            motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
             saveAttempt(sentence: sentence, result: result)
         }
         .onChange(of: sentence) {
