@@ -75,7 +75,6 @@ struct WordGroupDetailView: View {
         for index in offsets {
             modelContext.delete(items[index])
         }
-        try? modelContext.save()
     }
 }
 

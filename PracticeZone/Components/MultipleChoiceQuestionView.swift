@@ -4,8 +4,10 @@ struct MultipleChoiceQuestionView: View {
     let meaning: String
     let options: [String]
     let onNext: (String) -> Void
+    let onSkip: () -> Void
 
     @State private var selectedOption: String?
+    @State private var isConfirmingSkip = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -25,14 +27,33 @@ struct MultipleChoiceQuestionView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color(.systemGroupedBackground))
         .safeAreaInset(edge: .bottom) {
-            BottomActionButton {
-                if let selectedOption {
-                    onNext(selectedOption)
+            VStack(spacing: 8) {
+                BottomActionButton {
+                    if let selectedOption {
+                        onNext(selectedOption)
+                    }
+                } label: {
+                    Text("Next")
                 }
-            } label: {
-                Text("Next")
+                .disabled(selectedOption == nil)
+
+                Button {
+                    isConfirmingSkip = true
+                } label: {
+                    Text("Skip Question")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .confirmationDialog("Skip Question?", isPresented: $isConfirmingSkip, titleVisibility: .visible) {
+                    Button("Skip Question", role: .destructive) {
+                        onSkip()
+                    }
+                } message: {
+                    Text("It counts as incorrect, and you can't go back to it.")
+                }
             }
-            .disabled(selectedOption == nil)
             .padding(.horizontal)
             .padding(.bottom, 8)
         }
@@ -85,5 +106,7 @@ struct MultipleChoiceQuestionView: View {
     MultipleChoiceQuestionView(
         meaning: "an arrangement to have something held for you in advance",
         options: ["reservation", "light", "market", "delay"]
-    ) { _ in }
+    ) { _ in
+    } onSkip: {
+    }
 }

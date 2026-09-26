@@ -48,8 +48,9 @@ final class ExamQuestionResult {
     var pointsEarned: Int
     var maxPoints: Int
 
-    /// For a wrong multiple-choice answer, the correct word. For a production answer,
-    /// the grammar/meaning feedback sentence from `PracticeFeedbackGenerator`. Nil when correct.
+    /// Text shown under the answer in the results: the correct word after a wrong or
+    /// skipped multiple-choice answer, the grading message from `PracticeFeedback` for a
+    /// sentence, or why a question was skipped. Empty for a correct multiple-choice answer.
     /// Optional (rather than a non-optional default) so lightweight migration can add this
     /// attribute to existing rows without a "missing mandatory attribute" failure — SwiftData's
     /// automatic migration only fills in a default for genuinely optional attributes.

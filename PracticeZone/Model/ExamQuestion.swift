@@ -16,7 +16,7 @@ struct ExamQuestion: Identifiable {
     let word: String
 
     /// For `.multipleChoice`, the definition shown as the question prompt.
-    /// For `.production`, the meaning passed to `PracticeFeedbackGenerator` as grading context.
+    /// Unused for `.production`: grading only checks grammar.
     let meaning: String
 
     let kind: Kind

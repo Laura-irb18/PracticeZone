@@ -6,15 +6,13 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            WordGroupsView()
-                .tabItem {
-                    Label("Word Groups", systemImage: "rectangle.stack.fill")
-                }
+            Tab("Library", systemImage: "rectangle.stack.fill") {
+                WordGroupsView()
+            }
 
-            ExamsView()
-                .tabItem {
-                    Label("Exams", systemImage: "list.bullet.clipboard")
-                }
+            Tab("Exams", systemImage: "list.bullet.clipboard") {
+                ExamsView()
+            }
         }
         .environment(\.aiStatus, aiStatus)
         // The framework doesn't notify availability changes, so check again when the app comes back.

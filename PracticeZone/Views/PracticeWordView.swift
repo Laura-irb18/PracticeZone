@@ -9,6 +9,8 @@ struct PracticeWordView: View {
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
+    @State private var submittedSentence = ""
+    @State private var motivationalPhrase = ""
 
     private var isTooLong: Bool {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
@@ -67,7 +69,7 @@ struct PracticeWordView: View {
                                 .italic()
                                 .foregroundStyle(.secondary)
                         }
-                        Text(MotivationalPhrase.random(isCorrect: result.isCorrect))
+                        Text(motivationalPhrase)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -81,6 +83,7 @@ struct PracticeWordView: View {
                             HStack {
                                 Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                                     .foregroundStyle(attempt.isCorrect ? .green : .orange)
+                                    .accessibilityLabel(attempt.isCorrect ? "Correct" : "Needs work")
                                 Text(attempt.sentence)
                                     .font(.subheadline)
                             }
@@ -107,13 +110,10 @@ struct PracticeWordView: View {
         .safeAreaInset(edge: .bottom) {
             bottomBar
         }
-        .task(id: item.meaningSummary) {
+        .task(id: item.word) {
             guard generator?.isGenerating != true else { return }
             if generator != nil { hasSubmitted = false }
-            let newGenerator = PracticeFeedbackGenerator(
-                word: item.word,
-                meaning: item.meaningSummary
-            )
+            let newGenerator = PracticeFeedbackGenerator()
             generator = newGenerator
             newGenerator.prewarm()
         }
@@ -122,7 +122,11 @@ struct PracticeWordView: View {
                   let generator,
                   generator.error == nil,
                   let result = generator.result else { return }
-            saveAttempt(sentence: sentence, result: result)
+            motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
+            saveAttempt(sentence: submittedSentence, result: result)
+        }
+        .onChange(of: sentence) {
+            hasSubmitted = false
         }
     }
 
@@ -156,6 +160,7 @@ struct PracticeWordView: View {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let generator else { return }
         hasSubmitted = true
+        submittedSentence = trimmed
         generator.generate(for: trimmed)
     }
 
