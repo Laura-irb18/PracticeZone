@@ -9,6 +9,7 @@ struct PracticeWordView: View {
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
+    @State private var submittedSentence = ""
     @State private var motivationalPhrase = ""
 
     private var isTooLong: Bool {
@@ -122,7 +123,7 @@ struct PracticeWordView: View {
                   generator.error == nil,
                   let result = generator.result else { return }
             motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
-            saveAttempt(sentence: sentence, result: result)
+            saveAttempt(sentence: submittedSentence, result: result)
         }
         .onChange(of: sentence) {
             hasSubmitted = false
@@ -159,6 +160,7 @@ struct PracticeWordView: View {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let generator else { return }
         hasSubmitted = true
+        submittedSentence = trimmed
         generator.generate(for: trimmed)
     }
 
