@@ -124,6 +124,9 @@ struct PracticeWordView: View {
                   let result = generator.result else { return }
             saveAttempt(sentence: sentence, result: result)
         }
+        .onChange(of: sentence) {
+            hasSubmitted = false
+        }
     }
 
     private var bottomBar: some View {
