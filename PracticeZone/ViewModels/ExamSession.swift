@@ -15,6 +15,11 @@ final class ExamSession {
     /// exams eventually cover every word in a large group instead of relying on chance.
     static let maxQuestionsPerExam = 10
 
+    /// Options shown in a multiple-choice question: the word plus three distractors
+    /// from the same group. Groups smaller than this only get production questions,
+    /// so a question never shows a single (or too few) options.
+    static let optionsPerQuestion = 4
+
     let group: WordGroup
     let questions: [ExamQuestion]
     private(set) var currentIndex = 0
@@ -29,6 +34,12 @@ final class ExamSession {
 
     var currentQuestion: ExamQuestion {
         questions[currentIndex]
+    }
+
+    /// True while there are questions left to answer. Closing the exam then loses
+    /// the answers given so far, because the attempt is only saved at the end.
+    var isInProgress: Bool {
+        finishedAttempt == nil && !questions.isEmpty
     }
 
     func recordMultipleChoice(selected: String) {
@@ -57,6 +68,22 @@ final class ExamSession {
             userAnswer: sentence,
             feedback: feedback.feedback,
             correctedSentences: feedback.correctedSentences
+        )
+        advance(with: result)
+    }
+
+    /// Records a production question the user skipped because grading failed.
+    /// It counts as incorrect, like a wrong answer.
+    func skipProduction(sentence: String) {
+        let question = currentQuestion
+        let result = ExamQuestionResult(
+            questionText: "Write a sentence using \"\(question.word)\"",
+            kind: .production,
+            isCorrect: false,
+            pointsEarned: 0,
+            maxPoints: 1,
+            userAnswer: sentence,
+            feedback: "Skipped: the sentence couldn't be checked."
         )
         advance(with: result)
     }
@@ -97,7 +124,8 @@ final class ExamSession {
 
     /// Half multiple choice (matching a definition to its word, with distractor words
     /// from the same group) and half production (writing a sentence, graded by
-    /// `PracticeFeedbackGenerator`), shuffled.
+    /// `PracticeFeedbackGenerator`), shuffled. Groups with fewer than
+    /// `optionsPerQuestion` words only get production questions.
     private static func makeQuestions(for group: WordGroup) -> [ExamQuestion] {
         let usableItems = group.items.filter { !$0.meanings.isEmpty }
         guard !usableItems.isEmpty else { return [] }
@@ -107,7 +135,8 @@ final class ExamSession {
         }
         let selectedItems = Array(prioritizedItems.prefix(maxQuestionsPerExam)).shuffled()
 
-        let multipleChoiceCount = Int((Double(selectedItems.count) / 2).rounded())
+        let canAskMultipleChoice = usableItems.count >= optionsPerQuestion
+        let multipleChoiceCount = canAskMultipleChoice ? Int((Double(selectedItems.count) / 2).rounded()) : 0
         let multipleChoiceItems = selectedItems.prefix(multipleChoiceCount)
         let productionItems = selectedItems.dropFirst(multipleChoiceCount)
         let allWords = usableItems.map(\.word)
@@ -123,7 +152,7 @@ final class ExamSession {
     }
 
     private static func multipleChoiceQuestion(for item: VocabularyItem, allWords: [String]) -> ExamQuestion {
-        let distractors = allWords.filter { $0 != item.word }.shuffled().prefix(3)
+        let distractors = allWords.filter { $0 != item.word }.shuffled().prefix(optionsPerQuestion - 1)
         let options = ([item.word] + distractors).shuffled()
         return ExamQuestion(item: item, word: item.word, meaning: item.primaryMeaning, kind: .multipleChoice(options: options))
     }

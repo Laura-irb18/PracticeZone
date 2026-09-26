@@ -6,11 +6,13 @@ struct ExamGroupDetailView: View {
     @Environment(\.aiStatus) private var aiStatus
     let group: WordGroup
 
+    @State private var isTakingExam = false
+
     var body: some View {
         List {
             Section {
-                NavigationLink {
-                    ExamTakingView(group: group)
+                Button {
+                    isTakingExam = true
                 } label: {
                     Label("Start Exam", systemImage: "pencil.and.list.clipboard")
                 }
@@ -44,6 +46,9 @@ struct ExamGroupDetailView: View {
             }
         }
         .navigationTitle(group.name)
+        .fullScreenCover(isPresented: $isTakingExam) {
+            ExamTakingView(group: group)
+        }
     }
 
     private func deleteAttempt(_ attempt: ExamAttempt) {

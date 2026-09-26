@@ -10,6 +10,10 @@ struct PracticeWordView: View {
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
 
+    private var isTooLong: Bool {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
+    }
+
     var body: some View {
         NavigationStack {
             content
@@ -29,15 +33,25 @@ struct PracticeWordView: View {
                 WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
             }
 
-            Section("Your sentence") {
+            Section {
                 TextField("Write a sentence using \"\(item.word)\"", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
+            } header: {
+                Text("Your sentence")
+            } footer: {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Use \"\(item.word)\" in an English sentence. AI feedback can make mistakes.")
+                    Spacer()
+                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                        .monospacedDigit()
+                        .foregroundStyle(isTooLong ? .red : .secondary)
+                }
             }
 
             if hasSubmitted, let generator {
-                if let error = generator.error {
+                if let errorMessage = generator.errorMessage {
                     Section {
-                        Label(error.localizedDescription, systemImage: "xmark.circle")
+                        Label(errorMessage, systemImage: "xmark.circle")
                             .foregroundStyle(.red)
                     }
                 } else if let result = generator.result {
@@ -117,29 +131,23 @@ struct PracticeWordView: View {
         let showsTryAgain = hasSubmitted && generator?.result != nil && !isChecking
         let hasSentence = !sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 
-        return Button {
+        return BottomActionButton {
             if showsTryAgain {
                 reset()
             } else {
                 submit()
             }
         } label: {
-            Group {
-                if isChecking {
-                    Label("Checking grammar and meaning…", systemImage: "sparkles")
-                        .symbolEffect(.breathe)
-                } else if showsTryAgain {
-                    Text("Try Another Sentence")
-                } else {
-                    Text("Check Sentence")
-                }
+            if isChecking {
+                Label("Checking your sentence…", systemImage: "sparkles")
+                    .symbolEffect(.breathe)
+            } else if showsTryAgain {
+                Text("Try Another Sentence")
+            } else {
+                Text("Check Sentence")
             }
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .disabled(isChecking || (!showsTryAgain && !hasSentence))
+        .disabled(isChecking || (!showsTryAgain && (!hasSentence || isTooLong)))
         .padding(.horizontal)
         .padding(.bottom, 8)
     }
