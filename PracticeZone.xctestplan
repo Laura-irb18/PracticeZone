@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "6B9EF372-FB3F-4236-ADB2-58DA88934DCB",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:PracticeZone.xcodeproj",
+      "identifier" : "000000000000000100000000",
+      "name" : "PracticeZone"
+    },
+    "testInteropMode" : "complete"
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:PracticeZone.xcodeproj",
+        "identifier" : "A14300DA3067F08F0029AB88",
+        "name" : "PracticeZoneTests"
+      }
+    }
+  ],
+  "version" : 1
+}
