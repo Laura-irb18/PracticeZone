@@ -4,6 +4,10 @@ import FoundationModels
 @Observable
 @MainActor
 final class PracticeFeedbackGenerator {
+    /// Longest sentence a learner can submit. The corrected sentence must fit in the
+    /// response cap, and one practice sentence never needs more.
+    static let maxSentenceLength = 200
+
     let word: String
     let meaning: String
 

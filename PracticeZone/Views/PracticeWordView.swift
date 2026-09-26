@@ -10,6 +10,10 @@ struct PracticeWordView: View {
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
 
+    private var isTooLong: Bool {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
+    }
+
     var body: some View {
         NavigationStack {
             content
@@ -35,7 +39,13 @@ struct PracticeWordView: View {
             } header: {
                 Text("Your sentence")
             } footer: {
-                Text("Use \"\(item.word)\" in an English sentence. AI feedback can make mistakes.")
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Use \"\(item.word)\" in an English sentence. AI feedback can make mistakes.")
+                    Spacer()
+                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                        .monospacedDigit()
+                        .foregroundStyle(isTooLong ? .red : .secondary)
+                }
             }
 
             if hasSubmitted, let generator {
@@ -137,7 +147,7 @@ struct PracticeWordView: View {
                 Text("Check Sentence")
             }
         }
-        .disabled(isChecking || (!showsTryAgain && !hasSentence))
+        .disabled(isChecking || (!showsTryAgain && (!hasSentence || isTooLong)))
         .padding(.horizontal)
         .padding(.bottom, 8)
     }

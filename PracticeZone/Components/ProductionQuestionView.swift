@@ -13,13 +13,23 @@ struct ProductionQuestionView: View {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var isTooLong: Bool {
+        trimmedSentence.count > PracticeFeedbackGenerator.maxSentenceLength
+    }
+
     var body: some View {
         Form {
             Section {
                 TextField("Your sentence", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
             } footer: {
-                Text("AI feedback can make mistakes.")
+                HStack(alignment: .firstTextBaseline) {
+                    Text("AI feedback can make mistakes.")
+                    Spacer()
+                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                        .monospacedDigit()
+                        .foregroundStyle(isTooLong ? .red : .secondary)
+                }
             }
 
             if let errorMessage = generator?.errorMessage {
@@ -74,7 +84,7 @@ struct ProductionQuestionView: View {
                     Text(hasError ? "Try Again" : "Submit")
                 }
             }
-            .disabled(isChecking || trimmedSentence.isEmpty)
+            .disabled(isChecking || trimmedSentence.isEmpty || isTooLong)
 
             if hasError && !isChecking {
                 Button {
