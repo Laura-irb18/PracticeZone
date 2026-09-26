@@ -8,7 +8,8 @@ struct PracticeFeedback {
     init(word: String, sentence: String, grammar: GrammarCheckResult, meaning: MeaningCheckResult) {
         let grammarOK = grammar.mistake.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "none"
         self.isCorrect = grammarOK && meaning.isCorrect
-        self.correctedSentences = grammarOK ? [] : Self.dedupedCorrections(grammar.correctedSentences)
+        // The second correction the model offers often rewords the sentence or changes its meaning.
+        self.correctedSentences = grammarOK ? [] : Array(Self.dedupedCorrections(grammar.correctedSentences).prefix(1))
 
         switch (grammarOK, meaning.isCorrect) {
         case (true, true):

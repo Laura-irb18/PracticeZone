@@ -29,9 +29,13 @@ struct PracticeWordView: View {
                 WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
             }
 
-            Section("Your sentence") {
+            Section {
                 TextField("Write a sentence using \"\(item.word)\"", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
+            } header: {
+                Text("Your sentence")
+            } footer: {
+                Text("Use \"\(item.word)\" in an English sentence. AI feedback can make mistakes.")
             }
 
             if hasSubmitted, let generator {

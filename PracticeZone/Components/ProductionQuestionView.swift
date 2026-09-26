@@ -18,6 +18,8 @@ struct ProductionQuestionView: View {
             Section {
                 TextField("Your sentence", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
+            } footer: {
+                Text("AI feedback can make mistakes.")
             }
 
             if let errorMessage = generator?.errorMessage {

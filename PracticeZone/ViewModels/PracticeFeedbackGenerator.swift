@@ -33,8 +33,10 @@ final class PracticeFeedbackGenerator {
         }
     }
 
-    private let grammarSession: LanguageModelSession
-    private let meaningSession: LanguageModelSession
+    // Replaced with fresh sessions on every answer, so one attempt's transcript
+    // can't bias the next one.
+    private var grammarSession: LanguageModelSession
+    private var meaningSession: LanguageModelSession
     private var task: Task<Void, Never>?
 
     init(word: String, meaning: String) {
@@ -42,6 +44,11 @@ final class PracticeFeedbackGenerator {
         self.meaning = meaning
         self.grammarSession = LanguageModelSession(instructions: Self.grammarInstructions)
         self.meaningSession = LanguageModelSession(instructions: Self.meaningInstructions(word: word, meaning: meaning))
+    }
+
+    private func resetSessions() {
+        grammarSession = LanguageModelSession(instructions: Self.grammarInstructions)
+        meaningSession = LanguageModelSession(instructions: Self.meaningInstructions(word: word, meaning: meaning))
     }
 
     private static var grammarInstructions: Instructions {
@@ -81,13 +88,17 @@ final class PracticeFeedbackGenerator {
         task?.cancel()
         result = nil
         error = nil
+        let grammarSession = grammarSession
+        let meaningSession = meaningSession
+        resetSessions()
 
         task = Task {
             isGenerating = true
             do {
                 async let grammarResponse = grammarSession.respond(
                     generating: GrammarCheckResult.self,
-                    options: GenerationOptions(samplingMode: .greedy)
+                    // The cap turns a runaway generation into an error instead of a hang.
+                    options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
                 ) {
                     "Here are three examples of the output. Follow their style, but do not copy their content:"
                     GrammarCheckResult.exampleCorrect
@@ -99,7 +110,7 @@ final class PracticeFeedbackGenerator {
 
                 async let meaningResponse = meaningSession.respond(
                     generating: MeaningCheckResult.self,
-                    options: GenerationOptions(samplingMode: .greedy)
+                    options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
                 ) {
                     "Here are three examples of the output. Follow their style, but do not copy their content:"
                     MeaningCheckResult.exampleGivenSense
@@ -118,6 +129,7 @@ final class PracticeFeedbackGenerator {
                 }
             }
             isGenerating = false
+            prewarm()
         }
     }
 
