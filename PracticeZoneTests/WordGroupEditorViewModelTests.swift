@@ -37,10 +37,16 @@ struct WordGroupEditorViewModelTests {
         #expect(viewModel.name == "Food")
 
         viewModel.name = "Cooking"
+        viewModel.groupDescription = "Recipes to try"
+        viewModel.color = .orange
+        viewModel.iconName = "fork.knife"
         #expect(viewModel.save(in: container.mainContext))
 
         #expect(try container.mainContext.fetchCount(FetchDescriptor<WordGroup>()) == 1)
         #expect(group.name == "Cooking")
+        #expect(group.groupDescription == "Recipes to try")
+        #expect(group.color == .orange)
+        #expect(group.iconName == "fork.knife")
     }
 
     @Test(arguments: ["", "   "])

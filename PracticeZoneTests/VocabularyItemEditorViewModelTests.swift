@@ -81,12 +81,12 @@ struct VocabularyItemEditorViewModelTests {
         #expect(viewModel.meanings[0].examples.count == 3)
     }
 
-    @Test func `The first meaning can't be removed`() {
+    @Test func `The first meaning can't be removed`() throws {
         let viewModel = VocabularyItemEditorViewModel()
         viewModel.addMeaning()
 
         viewModel.removeMeaning(viewModel.meanings[0])
-        #expect(viewModel.meanings.count == 2)
+        try #require(viewModel.meanings.count == 2)
 
         viewModel.removeMeaning(viewModel.meanings[1])
         #expect(viewModel.meanings.count == 1)

@@ -38,7 +38,7 @@ struct ExamSessionTests {
 
         for question in session.questions {
             guard case .multipleChoice(let options) = question.kind else { continue }
-            #expect(options.count == ExamSession.optionsPerQuestion)
+            #expect(options.count == 4)
             #expect(Set(options).count == options.count)
             #expect(options.contains(question.word))
             #expect(!options.contains { $0.hasPrefix("empty") })
@@ -77,6 +77,28 @@ struct ExamSessionTests {
             let examinedAt = try #require(item.lastExaminedAt)
             #expect(examinedAt >= before && examinedAt <= .now)
         }
+    }
+
+    @Test func `A wrong multiple choice answer counts as incorrect`() throws {
+        let session = ExamSession(group: makeGroup(words: 4))
+
+        while session.isInProgress {
+            let question = session.currentQuestion
+            switch question.kind {
+            case .multipleChoice(let options):
+                let wrongOption = try #require(options.first { $0 != question.word })
+                session.recordMultipleChoice(selected: wrongOption)
+            case .production:
+                session.skipProduction(sentence: "")
+            }
+        }
+
+        let attempt = try #require(session.finishedAttempt)
+        let results = attempt.questionResults.filter { $0.kind == .multipleChoice }
+        #expect(attempt.multipleChoiceTotal == 2)
+        #expect(attempt.multipleChoiceScore == 0)
+        #expect(results.allSatisfy { !$0.isCorrect })
+        #expect(results.allSatisfy { $0.feedback?.hasPrefix("Correct answer:") == true })
     }
 
     @Test func `A skipped question counts as incorrect`() throws {
