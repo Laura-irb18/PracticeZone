@@ -60,6 +60,8 @@ struct ExamTakingView: View {
         case .multipleChoice(let options):
             MultipleChoiceQuestionView(meaning: question.meaning, options: options) { selected in
                 session.recordMultipleChoice(selected: selected)
+            } onSkip: {
+                session.skipQuestion()
             }
             .id(question.id)
             .safeAreaInset(edge: .top) {
@@ -71,6 +73,8 @@ struct ExamTakingView: View {
                 session.recordProduction(sentence: sentence, feedback: feedback)
             } onSkip: { sentence in
                 session.skipProduction(sentence: sentence)
+            } onSkipQuestion: {
+                session.skipQuestion()
             }
             .id(question.id)
             .safeAreaInset(edge: .top) {

@@ -4,9 +4,11 @@ struct ProductionQuestionView: View {
     let word: String
     let onResult: (String, PracticeFeedback) -> Void
     let onSkip: (String) -> Void
+    let onSkipQuestion: () -> Void
 
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
+    @State private var isConfirmingSkip = false
 
     private var trimmedSentence: String {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -85,16 +87,26 @@ struct ProductionQuestionView: View {
             }
             .disabled(isChecking || trimmedSentence.isEmpty || isTooLong)
 
-            if hasError && !isChecking {
-                Button {
-                    onSkip(trimmedSentence)
-                } label: {
-                    Text("Skip Question")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
+            Button {
+                isConfirmingSkip = true
+            } label: {
+                Text("Skip Question")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .disabled(isChecking)
+            .confirmationDialog("Skip Question?", isPresented: $isConfirmingSkip, titleVisibility: .visible) {
+                Button("Skip Question", role: .destructive) {
+                    if hasError {
+                        onSkip(trimmedSentence)
+                    } else {
+                        onSkipQuestion()
+                    }
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+            } message: {
+                Text("It counts as incorrect, and you can't go back to it.")
             }
         }
         .padding(.horizontal)
@@ -111,6 +123,7 @@ struct ProductionQuestionView: View {
     ProductionQuestionView(
         word: "reservation",
         onResult: { _, _ in },
-        onSkip: { _ in }
+        onSkip: { _ in },
+        onSkipQuestion: {}
     )
 }

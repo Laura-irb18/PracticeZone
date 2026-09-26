@@ -88,6 +88,35 @@ final class ExamSession {
         advance(with: result)
     }
 
+    /// Records the current question as skipped by the user. It counts as incorrect.
+    func skipQuestion() {
+        let question = currentQuestion
+        let result: ExamQuestionResult
+        switch question.kind {
+        case .multipleChoice:
+            result = ExamQuestionResult(
+                questionText: "Which word means: \(question.meaning)",
+                kind: .multipleChoice,
+                isCorrect: false,
+                pointsEarned: 0,
+                maxPoints: 1,
+                userAnswer: "",
+                feedback: "Skipped. Correct answer: \"\(question.word)\""
+            )
+        case .production:
+            result = ExamQuestionResult(
+                questionText: "Write a sentence using \"\(question.word)\"",
+                kind: .production,
+                isCorrect: false,
+                pointsEarned: 0,
+                maxPoints: 1,
+                userAnswer: "",
+                feedback: "Skipped."
+            )
+        }
+        advance(with: result)
+    }
+
     private func advance(with result: ExamQuestionResult) {
         result.order = currentIndex
         results.append(result)

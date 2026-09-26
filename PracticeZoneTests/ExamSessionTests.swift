@@ -113,6 +113,21 @@ struct ExamSessionTests {
         #expect(attempt.sortedQuestionResults.first?.isCorrect == false)
     }
 
+    @Test func `Skipping any question counts as incorrect`() throws {
+        let session = ExamSession(group: makeGroup(words: 6))
+
+        while session.isInProgress {
+            session.skipQuestion()
+        }
+
+        let attempt = try #require(session.finishedAttempt)
+        #expect(attempt.questionResults.count == session.questions.count)
+        #expect(attempt.multipleChoiceTotal > 0)
+        #expect(attempt.productionTotal > 0)
+        #expect(attempt.scorePercentage == 0)
+        #expect(attempt.questionResults.allSatisfy { !$0.isCorrect })
+    }
+
     // MARK: Helpers
 
     private func makeGroup(words: Int, wordsWithoutMeaning: Int = 0) -> WordGroup {
