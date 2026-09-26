@@ -33,25 +33,18 @@ final class PracticeFeedbackGenerator {
         }
     }
 
-    // Replaced with fresh sessions on every answer, so one attempt's transcript
+    // Replaced with a fresh session on every answer, so one attempt's transcript
     // can't bias the next one.
-    private var grammarSession: LanguageModelSession
-    private var meaningSession: LanguageModelSession
+    private var session: LanguageModelSession
     private var task: Task<Void, Never>?
 
     init(word: String, meaning: String) {
         self.word = word
         self.meaning = meaning
-        self.grammarSession = LanguageModelSession(instructions: Self.grammarInstructions)
-        self.meaningSession = LanguageModelSession(instructions: Self.meaningInstructions(word: word, meaning: meaning))
+        self.session = LanguageModelSession(instructions: Self.instructions)
     }
 
-    private func resetSessions() {
-        grammarSession = LanguageModelSession(instructions: Self.grammarInstructions)
-        meaningSession = LanguageModelSession(instructions: Self.meaningInstructions(word: word, meaning: meaning))
-    }
-
-    private static var grammarInstructions: Instructions {
+    private static var instructions: Instructions {
         Instructions {
             """
             You are an English teacher. Check the student's sentence for grammar and \
@@ -61,62 +54,28 @@ final class PracticeFeedbackGenerator {
         }
     }
 
-    private static func meaningInstructions(word: String, meaning: String) -> Instructions {
-        Instructions {
-            """
-            You judge whether the English word "\(word)" is used with a natural, correct \
-            common meaning in a sentence written by a language learner.
-            """
-
-            "One example meaning of \"\(word)\" is: \(meaning)"
-
-            """
-            That is only an example sense to help you — words often have other common, \
-            equally correct meanings, and using one of those is still correct. Only say it is \
-            incorrect when the word is used with a meaning that isn't a real common English \
-            sense at all.
-            """
-        }
-    }
-
     func prewarm() {
-        grammarSession.prewarm()
-        meaningSession.prewarm()
+        session.prewarm()
     }
 
     func generate(for sentence: String) {
         task?.cancel()
         result = nil
         error = nil
-        let grammarSession = grammarSession
-        let meaningSession = meaningSession
-        resetSessions()
+        let session = session
+        self.session = LanguageModelSession(instructions: Self.instructions)
 
         task = Task {
             isGenerating = true
             do {
-                async let grammarResponse = grammarSession.respond(
+                let response = try await session.respond(
                     generating: GrammarCheckResult.self,
                     // The cap turns a runaway generation into an error instead of a hang.
                     options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
                 ) {
                     sentence
                 }
-
-                async let meaningResponse = meaningSession.respond(
-                    generating: MeaningCheckResult.self,
-                    options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
-                ) {
-                    "Here are three examples of the output. Follow their style, but do not copy their content:"
-                    MeaningCheckResult.exampleGivenSense
-                    MeaningCheckResult.exampleOtherSense
-                    MeaningCheckResult.exampleWrongSense
-
-                    "Sentence: \"\(sentence)\""
-                }
-
-                let (grammar, meaningResult) = try await (grammarResponse.content, meaningResponse.content)
-                result = PracticeFeedback(word: word, sentence: sentence, grammar: grammar, meaning: meaningResult)
+                result = PracticeFeedback(sentence: sentence, grammar: response.content)
             } catch {
                 // A cancelled check (the user left the question) isn't an error to show.
                 if !Task.isCancelled, !(error is CancellationError) {

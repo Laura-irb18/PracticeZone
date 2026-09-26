@@ -129,7 +129,7 @@ struct PracticeWordView: View {
             }
         } label: {
             if isChecking {
-                Label("Checking grammar and meaning…", systemImage: "sparkles")
+                Label("Checking your sentence…", systemImage: "sparkles")
                     .symbolEffect(.breathe)
             } else if showsTryAgain {
                 Text("Try Another Sentence")

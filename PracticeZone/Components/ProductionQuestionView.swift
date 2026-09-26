@@ -68,7 +68,7 @@ struct ProductionQuestionView: View {
                 submit()
             } label: {
                 if isChecking {
-                    Label("Checking grammar and meaning…", systemImage: "sparkles")
+                    Label("Checking your sentence…", systemImage: "sparkles")
                         .symbolEffect(.breathe)
                 } else {
                     Text(hasError ? "Try Again" : "Submit")
