@@ -43,6 +43,12 @@ struct WordGroupDetailView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        // An alternative to swipe-to-delete (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                modelContext.delete(item)
+                            }
+                        }
                     }
                     .onDelete(perform: deleteItems)
                 }

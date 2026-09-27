@@ -110,6 +110,12 @@ struct PracticeWordView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
+                        // An alternative to the swipe (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                deleteAttempt(attempt)
+                            }
+                        }
                     }
                 }
             }
