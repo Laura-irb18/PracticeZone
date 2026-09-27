@@ -3,17 +3,22 @@
 **Practica vocabulario en inglés en cualquier lugar, incluso sin conexión.**  
 App iOS para hispanohablantes con IA que se ejecuta directamente en el dispositivo.
 
-<p align="center">
-  <kbd>SwiftUI</kbd> • <kbd>SwiftData</kbd> • <kbd>Apple Intelligence</kbd> • <kbd>@Generable</kbd> • <kbd>AVSpeechSynthesizer</kbd>
-</p>
-
----
-
 ## Resumen ejecutivo
 
 > Imagina entrar al metro o subir a un vuelo sin Wi-Fi y aprovechar ese tiempo muerto para practicar inglés. En PracticeZone, Apple Intelligence vive en tu dispositivo: corrige la gramática de tus frases, genera significados y ejemplos y revisa tus respuestas escritas en los exámenes, sin conexión y sin enviar tus datos a ningún servidor.
 
 PracticeZone cierra la brecha entre **reconocer una palabra** y **saber usarla**: el usuario escribe oraciones propias con su vocabulario y recibe retroalimentación al momento.
+
+## 🎬 Ver demo
+
+<p align="center">
+  <a href="https://youtube.com/shorts/NJ5rrB_D2Ts">
+    <img src="https://img.youtube.com/vi/NJ5rrB_D2Ts/hqdefault.jpg" alt="Demo de PracticeZone en YouTube" width="320">
+  </a>
+  <br>
+</p>
+
+---
 
 ## Qué ofrece
 
@@ -37,6 +42,12 @@ PracticeZone cierra la brecha entre **reconocer una palabra** y **saber usarla**
 **Por qué la corrección es solo gramatical.** Para comprobar si la palabra se usó con el significado correcto, el modelo tendría que recibir en cada solicitud, al menos, la palabra y sus significados. En un modelo local con contexto y respuesta limitados, eso aumenta la latencia, puede superar el límite de contexto y no garantiza un resultado más fiable. Por eso PracticeZone solo le pide al modelo la frase corregida. Tampoco comprueba si la palabra estudiada aparece en la oración, porque tendría que reconocerla en sus distintos tiempos verbales y formas gramaticales.
 
 **Sin IA disponible**, la app no se bloquea: oculta esas funciones, explica el motivo y mantiene la biblioteca y la edición manual.
+
+## Tecnología
+
+<p align="left">
+  <kbd>SwiftUI</kbd> • <kbd>SwiftData</kbd> • <kbd>Apple Intelligence</kbd> • <kbd>@Generable</kbd> • <kbd>AVSpeechSynthesizer</kbd>
+</p>
 
 ## Arquitectura
 
