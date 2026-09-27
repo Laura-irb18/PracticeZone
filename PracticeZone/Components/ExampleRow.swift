@@ -9,6 +9,8 @@ struct ExampleRow: View {
             HStack {
                 Text(text)
                     .font(.callout.italic())
+                    // The sentence always shows in full: it wraps instead of being cut off with "…".
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 SpeakButton(text: text, iconAlignment: .trailing)
                     .font(.subheadline)
@@ -23,9 +25,10 @@ struct ExampleRow: View {
 }
 
 #Preview {
-    ExampleRow(
-        text: "We made a reservation for dinner at eight.",
-        translation: "Hicimos una reserva para cenar a las ocho."
-    )
-    .padding()
+    List {
+        ExampleRow(
+            text: "Please keep your luggage with you at all times while you are waiting at the gate.",
+            translation: "Por favor, mantenga su equipaje con usted en todo momento mientras espera en la puerta."
+        )
+    }
 }
