@@ -12,8 +12,6 @@ final class WordSpeaker: NSObject, AVSpeechSynthesizerDelegate {
     private override init() {
         super.init()
         synthesizer.delegate = self
-        /// The system runs speech in its own audio session: it handles interruptions
-        /// and ducks other audio, without blocking the main thread.
         synthesizer.usesApplicationAudioSession = false
     }
 

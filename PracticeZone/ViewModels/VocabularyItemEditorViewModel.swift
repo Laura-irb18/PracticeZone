@@ -104,7 +104,7 @@ final class VocabularyItemEditorViewModel {
         }
     }
 
-    /// What is being generated right now. The on-device model handles one request at a time.
+    /// What is being generated right now.
     enum GenerationTarget: Equatable {
         case meaning(MeaningDraft.ID)
         case translation(MeaningDraft.ID)
@@ -153,7 +153,7 @@ final class VocabularyItemEditorViewModel {
         }
     }
 
-    /// Replaces the first meaning with a new one. Random sampling, so the result differs from the current one.
+    /// Replaces the first meaning with a new one.
     func regenerateMeaning(_ meaning: MeaningDraft) {
         guard canStartGeneration, isPrimary(meaning) else { return }
         start(.meaning(meaning.id)) {
@@ -206,9 +206,6 @@ final class VocabularyItemEditorViewModel {
             await work()
         }
     }
-
-    // Task cancellation is cooperative, and the framework doesn't document how a response stream
-    // reacts to it, so each stream checks for cancellation on every snapshot.
 
     private func streamMeaning(_ id: MeaningDraft.ID, varied: Bool) async {
         defer { generation = nil }

@@ -36,7 +36,6 @@ struct VocabularyItemEditorSheet: View {
                         .onChange(of: viewModel.word) { oldValue, newValue in
                             viewModel.wordChanged(from: oldValue, to: newValue)
                         }
-//                        .autocorrectionDisabled()
                     TextField("Friendly pronunciation (optional)", text: $viewModel.friendlyPronunciation)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)

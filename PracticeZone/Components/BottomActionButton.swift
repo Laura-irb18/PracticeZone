@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// The full-width prominent button pinned to the bottom of a screen for its main
-/// action (Practice's Check Sentence, the exam's Check Sentence / Try Again).
+/// The full-width prominent button pinned to the bottom of a screen for its main action.
 struct BottomActionButton<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: Label

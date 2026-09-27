@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// The header of a detail screen, modeled on the iTunes Store album page: the group's
-/// badge on the leading side, the title on top, small details at the bottom and the
-/// screen's main action, if it has one, as a capsule on the trailing side.
+/// badge on the leading side, the title on top and small details at the bottom.
 struct DetailHeader<Title: View, Details: View, Action: View>: View {
     let iconName: String
     let color: Color

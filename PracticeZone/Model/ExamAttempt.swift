@@ -60,8 +60,7 @@ final class ExamQuestionResult {
     /// for the same migration-safety reason as `feedback`.
     var correctedSentences: [String]?
 
-    /// What the user answered: the chosen option for multiple choice, or the submitted
-    /// sentence for production. Optional for the same migration-safety reason as `feedback`
+    /// Optional for the same migration-safety reason as `feedback`
     /// (and nil for results saved before this field existed).
     var userAnswer: String?
 

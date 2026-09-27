@@ -69,7 +69,6 @@ final class PracticeFeedbackGenerator {
             do {
                 let response = try await session.respond(
                     generating: GrammarCheckResult.self,
-                    // The cap turns a runaway generation into an error instead of a hang.
                     options: GenerationOptions(samplingMode: .greedy, maximumResponseTokens: 200)
                 ) {
                     sentence
