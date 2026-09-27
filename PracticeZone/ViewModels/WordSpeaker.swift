@@ -12,6 +12,9 @@ final class WordSpeaker: NSObject, AVSpeechSynthesizerDelegate {
     private override init() {
         super.init()
         synthesizer.delegate = self
+        /// The system runs speech in its own audio session: it handles interruptions
+        /// and ducks other audio, without blocking the main thread.
+        synthesizer.usesApplicationAudioSession = false
     }
 
     func speak(_ text: String) {
@@ -26,10 +29,14 @@ final class WordSpeaker: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.speakingText = nil }
+        Task { @MainActor in
+            self.speakingText = nil
+        }
     }
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.speakingText = nil }
+        Task { @MainActor in
+            self.speakingText = nil
+        }
     }
 }

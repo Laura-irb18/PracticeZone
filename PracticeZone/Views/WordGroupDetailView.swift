@@ -43,6 +43,12 @@ struct WordGroupDetailView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                        // An alternative to swipe-to-delete (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                modelContext.delete(item)
+                            }
+                        }
                     }
                     .onDelete(perform: deleteItems)
                 }
@@ -68,8 +74,8 @@ struct WordGroupDetailView: View {
                 }
             }
         }
-        // The header shows the name once there are words; until then it goes in the bar.
-        .navigationTitle(group.items.isEmpty ? group.name : "")
+        // Always set: VoiceOver announces it and the back button menu lists it.
+        .navigationTitle(group.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

@@ -9,6 +9,9 @@ struct ProductionQuestionView: View {
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var isConfirmingSkip = false
+    @AccessibilityFocusState private var isPromptFocused: Bool
+    @AccessibilityFocusState private var isErrorFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var trimmedSentence: String {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -24,32 +27,55 @@ struct ProductionQuestionView: View {
                 TextField("Your sentence", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
             } footer: {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Use \"\(word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
-                    Spacer()
-                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
-                        .monospacedDigit()
-                        .foregroundStyle(isTooLong ? .red : .secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    layout {
+                        Text("Use \"\(word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("\(trimmedSentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                            .monospacedDigit()
+                            .foregroundStyle(isTooLong ? .red : .secondary)
+                            .accessibilityLabel("\(trimmedSentence.count) of \(PracticeFeedbackGenerator.maxSentenceLength) characters")
+                    }
+                    // Says why Submit is off, not only with the red counter (HIG: more than color alone).
+                    if isTooLong {
+                        Label {
+                            Text("^[\(trimmedSentence.count - PracticeFeedbackGenerator.maxSentenceLength) character](inflect: true) over the limit")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
             }
 
             if let errorMessage = generator?.errorMessage {
                 Section {
-                    Label(errorMessage, systemImage: "xmark.circle")
-                        .foregroundStyle(.red)
+                    Label {
+                        Text(errorMessage)
+                    } icon: {
+                        Image(systemName: "xmark.circle")
+                            .foregroundStyle(.red)
+                    }
+                    .accessibilityFocused($isErrorFocused)
                 } footer: {
                     Text("Skipping counts as incorrect.")
                 }
             }
         }
-        .safeAreaInset(edge: .top) {
+        .safeAreaBar(edge: .top) {
             Text("Write a sentence using \"\(word)\"")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isPromptFocused)
         }
         .animation(.smooth, value: generator?.isGenerating)
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             bottomBar
         }
         .task {
@@ -59,11 +85,20 @@ struct ProductionQuestionView: View {
             newGenerator.prewarm()
         }
         .onChange(of: generator?.isGenerating) { _, isGenerating in
-            guard isGenerating == false,
-                  let generator,
-                  generator.error == nil,
-                  let result = generator.result else { return }
+            if isGenerating == true {
+                AccessibilityNotification.Announcement(String(localized: "Checking your sentence")).post()
+            }
+            guard isGenerating == false, let generator else { return }
+            if generator.error != nil {
+                isErrorFocused = true
+                return
+            }
+            guard let result = generator.result else { return }
             onResult(trimmedSentence, result)
+        }
+        .onAppear {
+            // VoiceOver starts each new question at its prompt instead of staying on Submit.
+            isPromptFocused = true
         }
         .onDisappear {
             generator?.cancel()

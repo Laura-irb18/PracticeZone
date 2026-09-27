@@ -7,7 +7,6 @@ struct AIUnavailableNote: View {
     var body: some View {
         Label(message, systemImage: "apple.intelligence.badge.xmark")
             .font(.footnote)
-            .foregroundStyle(.secondary)
     }
 }
 

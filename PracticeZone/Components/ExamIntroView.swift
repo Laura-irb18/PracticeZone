@@ -6,11 +6,15 @@ import SwiftUI
 struct ExamIntroView: View {
     let onContinue: () -> Void
 
+    @AccessibilityFocusState private var isTitleFocused: Bool
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 Text("Before You Start")
                     .font(.largeTitle.bold())
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityFocused($isTitleFocused)
 
                 rule(
                     "Make each sentence yours",
@@ -48,6 +52,10 @@ struct ExamIntroView: View {
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 8)
+        }
+        .onAppear {
+            // VoiceOver starts at the title instead of the sheet's grabber.
+            isTitleFocused = true
         }
     }
 

@@ -24,6 +24,12 @@ struct WordGroupsView: View {
                             }
                         }
                     }
+                    // An alternative to swipe-to-delete (HIG: offer alternatives to gestures).
+                    .contextMenu {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            modelContext.delete(group)
+                        }
+                    }
                 }
                 .onDelete(perform: deleteGroups)
             }

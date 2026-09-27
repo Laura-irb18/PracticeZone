@@ -11,9 +11,15 @@ struct PracticeWordView: View {
     @State private var hasSubmitted = false
     @State private var submittedSentence = ""
     @State private var motivationalPhrase = ""
+    @AccessibilityFocusState private var isFeedbackFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var characterCount: Int {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count
+    }
 
     private var isTooLong: Bool {
-        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
+        characterCount > PracticeFeedbackGenerator.maxSentenceLength
     }
 
     var body: some View {
@@ -42,28 +48,51 @@ struct PracticeWordView: View {
             } header: {
                 Text("Your sentence")
             } footer: {
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
-                    Spacer()
-                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
-                        .monospacedDigit()
-                        .foregroundStyle(isTooLong ? .red : .secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    layout {
+                        Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("\(characterCount)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                            .monospacedDigit()
+                            .foregroundStyle(isTooLong ? .red : .secondary)
+                            .accessibilityLabel("\(characterCount) of \(PracticeFeedbackGenerator.maxSentenceLength) characters")
+                    }
+                    // Says why Check Sentence is off, not only with the red counter (HIG: more than color alone).
+                    if isTooLong {
+                        Label {
+                            Text("^[\(characterCount - PracticeFeedbackGenerator.maxSentenceLength) character](inflect: true) over the limit")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
             }
 
             if hasSubmitted, let generator {
                 if let errorMessage = generator.errorMessage {
                     Section {
-                        Label(errorMessage, systemImage: "xmark.circle")
-                            .foregroundStyle(.red)
+                        Label {
+                            Text(errorMessage)
+                        } icon: {
+                            Image(systemName: "xmark.circle")
+                                .foregroundStyle(.red)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                     }
                 } else if let result = generator.result {
                     Section("Feedback") {
-                        Label(
-                            result.isCorrect ? "Correct" : "Needs work",
-                            systemImage: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
-                        )
-                        .foregroundStyle(result.isCorrect ? .green : .orange)
+                        Label {
+                            Text(result.isCorrect ? "Correct" : "Needs work")
+                        } icon: {
+                            Image(systemName: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                .foregroundStyle(result.isCorrect ? .green : .orange)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                         Text(result.feedback)
                         ForEach(result.correctedSentences, id: \.self) { corrected in
                             Text(corrected)
@@ -102,13 +131,19 @@ struct PracticeWordView: View {
                                 Label("Delete", systemImage: "trash")
                             }
                         }
+                        // An alternative to the swipe (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                deleteAttempt(attempt)
+                            }
+                        }
                     }
                 }
             }
         }
         .animation(.smooth, value: generator?.isGenerating)
         .navigationTitle("Practice")
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             bottomBar
         }
         .task(id: item.word) {
@@ -118,11 +153,18 @@ struct PracticeWordView: View {
             generator = newGenerator
             newGenerator.prewarm()
         }
+        // A tap when the check starts; nothing while it runs or when it ends.
+        .sensoryFeedback(.impact(weight: .medium), trigger: generator?.isGenerating) { _, isGenerating in
+            isGenerating == true
+        }
         .onChange(of: generator?.isGenerating) { _, isGenerating in
-            guard isGenerating == false,
-                  let generator,
-                  generator.error == nil,
-                  let result = generator.result else { return }
+            if isGenerating == true {
+                AccessibilityNotification.Announcement(String(localized: "Checking your sentence")).post()
+            }
+            guard isGenerating == false, let generator else { return }
+            // VoiceOver moves to the verdict (then feedback and correction), or to the error.
+            isFeedbackFocused = true
+            guard generator.error == nil, let result = generator.result else { return }
             motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
             saveAttempt(sentence: submittedSentence, result: result)
         }

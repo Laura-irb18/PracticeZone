@@ -18,7 +18,8 @@ struct ExamGroupDetailView: View {
                     startExamButton
                     Text(startExamNote ?? details)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        // Why the exam can't start is essential; the details are secondary.
+                        .foregroundStyle(startExamNote == nil ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -49,6 +50,12 @@ struct ExamGroupDetailView: View {
                                 deleteAttempt(attempt)
                             } label: {
                                 Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        // An alternative to the swipe (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                deleteAttempt(attempt)
                             }
                         }
                     }

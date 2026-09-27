@@ -3,6 +3,8 @@ import SwiftUI
 struct ExamResultView: View {
     let attempt: ExamAttempt
 
+    @AccessibilityFocusState private var isScoreFocused: Bool
+
     var body: some View {
         List {
             Section {
@@ -14,6 +16,8 @@ struct ExamResultView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical)
+                .accessibilityElement(children: .combine)
+                .accessibilityFocused($isScoreFocused)
             }
 
             Section("Questions") {
@@ -23,6 +27,10 @@ struct ExamResultView: View {
             }
         }
         .navigationTitle("Results")
+        .onAppear {
+            // At the end of an exam, VoiceOver starts at the score.
+            isScoreFocused = true
+        }
     }
 }
 
