@@ -10,25 +10,26 @@ struct WordGroupDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                GroupDetailHeader(
-                    name: group.name,
-                    iconName: group.iconName,
-                    color: group.color.color,
-                    wordCount: group.items.count,
-                    groupDescription: group.groupDescription
-                )
-            }
-
-            if group.items.isEmpty {
-                Section {
-                    ContentUnavailableView {
-                        Label("No words yet", systemImage: "text.book.closed")
-                    } description: {
-                        Text("Add your first word to start practicing.")
-                    } 
+            if !group.items.isEmpty {
+                DetailHeader(iconName: group.iconName, color: group.color.color) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(group.name)
+                            .font(.title2.bold())
+                        if !group.groupDescription.isEmpty {
+                            Text(group.groupDescription)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } details: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("^[\(group.items.count) word](inflect: true)")
+                        Text("Created \(group.createdAt, format: .dateTime.month().day())")
+                    }
+                } action: {
                 }
-            } else {
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+
                 Section("Words") {
                     ForEach(group.sortedItems) { item in
                         NavigationLink {
@@ -47,12 +48,34 @@ struct WordGroupDetailView: View {
                 }
             }
         }
+        .scrollDisabled(group.items.isEmpty)
+        .overlay {
+            if group.items.isEmpty {
+                ContentUnavailableView {
+                    Label("No Words Yet", systemImage: "text.book.closed")
+                } description: {
+                    Text("Add your first word to start practicing.")
+                } actions: {
+                    Button {
+                        isAddingWord = true
+                    } label: {
+                        Text("Add Word")
+                            .fontWeight(.bold)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.large)
+                }
+            }
+        }
+        // The header shows the name once there are words; until then it goes in the bar.
+        .navigationTitle(group.items.isEmpty ? group.name : "")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add Word", systemImage: "plus") {
                     isAddingWord = true
                 }
-//                .buttonStyle(.glassProminent)
             }
             ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
@@ -60,7 +83,6 @@ struct WordGroupDetailView: View {
                     isEditingGroup = true
                 }
             }
-        
         }
         .sheet(isPresented: $isAddingWord) {
             VocabularyItemEditorSheet(group: group, item: nil)
