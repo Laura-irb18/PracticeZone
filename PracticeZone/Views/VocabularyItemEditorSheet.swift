@@ -15,12 +15,29 @@ struct VocabularyItemEditorSheet: View {
         NavigationStack {
             Form {
                 Section {
+                    VStack(spacing: 12) {
+                        GroupIconBadge(
+                            iconName: targetGroup?.iconName ?? "text.book.closed",
+                            color: targetGroup?.color.color ?? .accentColor,
+                            size: 88
+                        )
+                        if let targetGroup {
+                            Text(targetGroup.name)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .listRowBackground(Color.clear)
+
+                Section {
                     TextField("Vocabulary", text: $viewModel.word)
                         .onChange(of: viewModel.word) { oldValue, newValue in
                             viewModel.wordChanged(from: oldValue, to: newValue)
                         }
 //                        .autocorrectionDisabled()
-                    TextField("Friendly Pronunciation (optional)", text: $viewModel.friendlyPronunciation)
+                    TextField("Friendly pronunciation (optional)", text: $viewModel.friendlyPronunciation)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                 } footer: {
@@ -42,6 +59,7 @@ struct VocabularyItemEditorSheet: View {
                 }
             }
             .navigationTitle(viewModel.isEditing ? "Edit Word" : "New Word")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(role: .cancel) {
@@ -80,6 +98,7 @@ struct VocabularyItemEditorSheet: View {
                 Text(viewModel.saveError?.localizedDescription ?? "")
             }
         }
+        .scrollIndicators(.hidden)
         .onAppear {
             viewModel.load(item)
         }
@@ -87,11 +106,16 @@ struct VocabularyItemEditorSheet: View {
             viewModel.cancelGeneration()
         }
     }
+
+    /// The group the word goes into: the one passed in, or the word's own when editing.
+    private var targetGroup: WordGroup? {
+        group ?? item?.wordGroup
+    }
 }
 
 #Preview {
     let container = try! ModelContainer(for: WordGroup.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let group = WordGroup(name: "Travel")
+    let group = WordGroup(name: "Travel", iconName: "airplane")
     container.mainContext.insert(group)
     return VocabularyItemEditorSheet(group: group, item: nil)
         .modelContainer(container)

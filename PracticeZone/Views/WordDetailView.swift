@@ -11,9 +11,47 @@ struct WordDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
+            VStack(alignment: .leading, spacing: 8) {
+                DetailHeader(
+                    iconName: item.wordGroup?.iconName ?? "text.book.closed",
+                    color: item.wordGroup?.color.color ?? .accentColor
+                ) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(item.word)
+                                .font(.title.bold())
+                            SpeakButton(text: item.word)
+                                .font(.title3)
+                        }
+                        if !item.friendlyPronunciation.isEmpty {
+                            Text(item.friendlyPronunciation)
+                                .foregroundStyle(.secondary)
+                        }
+                        if let group = item.wordGroup {
+                            Text(group.name)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 2)
+                        }
+                    }
+                } details: {
+                    Text(details)
+                } action: {
+                }
+                VStack(spacing: 8) {
+                    CompactActionButton(title: "Practice", systemImage: "target") {
+                        isPracticing = true
+                    }
+                    .disabled(!aiStatus.isAvailable)
+                    if !aiStatus.isAvailable {
+                        AIUnavailableNote(message: aiStatus.practiceMessage)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 8)
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
 
             ForEach(Array(item.sortedMeanings.enumerated()), id: \.element.id) { index, meaning in
                 Section("Meaning \(index + 1)") {
@@ -27,25 +65,6 @@ struct WordDetailView: View {
                     }
                 }
             }
-        }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 8) {
-                if !aiStatus.isAvailable {
-                    AIUnavailableNote(message: aiStatus.practiceMessage)
-                }
-                Button {
-                    isPracticing = true
-                } label: {
-                    Text("Practice")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!aiStatus.isAvailable)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -61,10 +80,21 @@ struct WordDetailView: View {
             VocabularyItemEditorSheet(group: nil, item: item)
         }
     }
+
+    /// Its parts of speech, without repeats, and how many meanings it has: "noun · 2 meanings".
+    private var details: String {
+        var partsOfSpeech: [String] = []
+        for meaning in item.sortedMeanings where !partsOfSpeech.contains(meaning.partOfSpeech) {
+            partsOfSpeech.append(meaning.partOfSpeech)
+        }
+        let meaningCount = item.meanings.count == 1 ? "1 meaning" : "\(item.meanings.count) meanings"
+        return (partsOfSpeech + [meaningCount]).joined(separator: " · ")
+    }
 }
 
 #Preview {
-    let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon")
+    let group = WordGroup(name: "Travel", iconName: "airplane")
+    let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon", wordGroup: group)
     let booking = Meaning(
         definition: "an arrangement to have something held for you in advance",
         translation: "reserva",

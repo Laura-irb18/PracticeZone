@@ -25,7 +25,7 @@ struct ProductionQuestionView: View {
                     .disabled(generator?.isGenerating == true)
             } footer: {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("AI feedback can make mistakes.")
+                    Text("Use \"\(word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
                     Spacer()
                     Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
                         .monospacedDigit()
@@ -94,7 +94,7 @@ struct ProductionQuestionView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.glass)
             .controlSize(.large)
             .disabled(isChecking)
             .confirmationDialog("Skip Question?", isPresented: $isConfirmingSkip, titleVisibility: .visible) {

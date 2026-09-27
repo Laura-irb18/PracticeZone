@@ -51,21 +51,21 @@ enum AIStatus: Equatable {
         }
     }
 
-    /// Explains why exams can't be taken, and that word groups can still grow.
+    /// Explains why exams can't be taken, and that the library can still grow.
     var examsMessage: String {
         switch self {
         case .available:
             ""
         case .appleIntelligenceNotEnabled:
-            "Turn on Apple Intelligence in Settings to take exams. Meanwhile, you can keep building your word groups."
+            "Turn on Apple Intelligence in Settings to take exams. Meanwhile, you can keep building your library."
         case .deviceNotEligible:
-            "This device doesn't support Apple Intelligence, which grades your exams. You can still keep building your word groups."
+            "This device doesn't support Apple Intelligence, which grades your exams. You can still keep building your library."
         case .modelNotReady:
-            "Apple Intelligence is still downloading. Exams will be ready when it finishes. Meanwhile, keep building your word groups."
+            "Apple Intelligence is still downloading. Exams will be ready when it finishes. Meanwhile, keep building your library."
         case .unsupportedLanguage:
-            "Apple Intelligence doesn't support English and Spanish on this device, so exams can't be graded. You can still keep building your word groups."
+            "Apple Intelligence doesn't support English and Spanish on this device, so exams can't be graded. You can still keep building your library."
         case .unavailable:
-            "Apple Intelligence isn't available right now, so exams can't be graded. You can still keep building your word groups."
+            "Apple Intelligence isn't available right now, so exams can't be graded. You can still keep building your library."
         }
     }
 
