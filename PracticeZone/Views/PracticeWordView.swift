@@ -14,8 +14,12 @@ struct PracticeWordView: View {
     @AccessibilityFocusState private var isFeedbackFocused: Bool
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    private var characterCount: Int {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count
+    }
+
     private var isTooLong: Bool {
-        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
+        characterCount > PracticeFeedbackGenerator.maxSentenceLength
     }
 
     var body: some View {
@@ -44,16 +48,28 @@ struct PracticeWordView: View {
             } header: {
                 Text("Your sentence")
             } footer: {
-                // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
-                let layout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
-                layout {
-                    Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
-                        .monospacedDigit()
-                        .foregroundStyle(isTooLong ? .red : .secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    layout {
+                        Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("\(characterCount)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                            .monospacedDigit()
+                            .foregroundStyle(isTooLong ? .red : .secondary)
+                            .accessibilityLabel("\(characterCount) of \(PracticeFeedbackGenerator.maxSentenceLength) characters")
+                    }
+                    // Says why Check Sentence is off, not only with the red counter (HIG: more than color alone).
+                    if isTooLong {
+                        Label {
+                            Text("^[\(characterCount - PracticeFeedbackGenerator.maxSentenceLength) character](inflect: true) over the limit")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
             }
 

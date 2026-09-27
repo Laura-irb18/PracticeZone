@@ -27,16 +27,28 @@ struct ProductionQuestionView: View {
                 TextField("Your sentence", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
             } footer: {
-                // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
-                let layout = dynamicTypeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
-                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
-                layout {
-                    Text("Use \"\(word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
-                        .monospacedDigit()
-                        .foregroundStyle(isTooLong ? .red : .secondary)
+                VStack(alignment: .leading, spacing: 6) {
+                    // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    layout {
+                        Text("Use \"\(word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("\(trimmedSentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                            .monospacedDigit()
+                            .foregroundStyle(isTooLong ? .red : .secondary)
+                            .accessibilityLabel("\(trimmedSentence.count) of \(PracticeFeedbackGenerator.maxSentenceLength) characters")
+                    }
+                    // Says why Submit is off, not only with the red counter (HIG: more than color alone).
+                    if isTooLong {
+                        Label {
+                            Text("^[\(trimmedSentence.count - PracticeFeedbackGenerator.maxSentenceLength) character](inflect: true) over the limit")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
             }
 
