@@ -14,23 +14,44 @@ struct WordGroupsView: View {
                     NavigationLink {
                         WordGroupDetailView(group: group)
                     } label: {
-                        Label {
-                            Text(group.name)
-                        } icon: {
-                            Image(systemName: group.iconName)
-                                .foregroundStyle(group.color.color)
+                        LabeledContent {
+                            Text("\(group.items.count)")
+                        } label: {
+                            Label {
+                                Text(group.name)
+                            } icon: {
+                                GroupIconBadge(iconName: group.iconName, color: group.color.color)
+                            }
                         }
                     }
                 }
                 .onDelete(perform: deleteGroups)
             }
-            .navigationTitle("Word Groups")
+            .scrollDisabled(wordGroups.isEmpty)
+            .navigationTitle("Library")
+            .overlay {
+                if wordGroups.isEmpty {
+                    ContentUnavailableView {
+                        Label("Your Library Is Empty", systemImage: "rectangle.stack")
+                    } description: {
+                        Text("Create a group to start adding words.")
+                    } actions: {
+                        Button {
+                            isPresentingNewGroup = true
+                        } label: {
+                            Text("New Group")
+                                .fontWeight(.bold)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
+                    }
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
+                    Button("New Group", systemImage: "plus") {
                         isPresentingNewGroup = true
-                    } label: {
-                        Image(systemName: "plus")
                     }
                 }
             }
@@ -51,3 +72,12 @@ struct WordGroupsView: View {
     WordGroupsView()
         .modelContainer(for: WordGroup.self, inMemory: true)
 }
+#Preview("With groups") {
+    let container = try! ModelContainer(for: WordGroup.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    container.mainContext.insert(WordGroup(name: "Travel", groupDescription: "Words for booking trips", iconName: "airplane", color: .blue))
+    container.mainContext.insert(WordGroup(name: "Food", iconName: "fork.knife", color: .orange))
+    container.mainContext.insert(WordGroup(name: "Work", iconName: "briefcase.fill", color: .purple))
+    return WordGroupsView()
+        .modelContainer(container)
+}
+

@@ -14,7 +14,7 @@ struct WordGroupEditorSheet: View {
             Form {
                 Section {
                     GroupStyleHeader(
-                        title: viewModel.isEditing ? "Edit your word group" : "Create your word group",
+                        title: viewModel.isEditing ? "Edit Group" : "New Group",
                         subtitle: "Choose a color and an icon to make it easy to find.",
                         iconName: viewModel.iconName,
                         color: viewModel.color.color
@@ -66,6 +66,7 @@ struct WordGroupEditorSheet: View {
                 Text(viewModel.saveError?.localizedDescription ?? "")
             }
         }
+        .scrollIndicators(.hidden)
     }
 }
 

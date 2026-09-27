@@ -15,6 +15,7 @@ struct ContentView: View {
             }
         }
         .environment(\.aiStatus, aiStatus)
+        .scrollIndicators(.hidden)
         // The framework doesn't notify availability changes, so check again when the app comes back.
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
