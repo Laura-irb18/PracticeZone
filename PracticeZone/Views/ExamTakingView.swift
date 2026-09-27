@@ -67,7 +67,7 @@ struct ExamTakingView: View {
             .id(question.id)
             .safeAreaBar(edge: .top) {
                 progressHeader(session)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 24)
             }
         case .production:
             ProductionQuestionView(word: question.word) { sentence, feedback in
@@ -80,7 +80,7 @@ struct ExamTakingView: View {
             .id(question.id)
             .safeAreaBar(edge: .top) {
                 progressHeader(session)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 24)
             }
         }
     }

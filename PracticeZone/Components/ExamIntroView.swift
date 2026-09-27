@@ -7,10 +7,11 @@ struct ExamIntroView: View {
     let onContinue: () -> Void
 
     @AccessibilityFocusState private var isTitleFocused: Bool
+    @ScaledMetric(relativeTo: .title) private var ruleIconSize = 44
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 36) {
                 Text("Before You Start")
                     .font(.largeTitle.bold())
                     .accessibilityAddTraits(.isHeader)
@@ -60,17 +61,20 @@ struct ExamIntroView: View {
     }
 
     private func rule(_ title: String, systemImage: String, detail: String) -> some View {
-        Label {
+        HStack(alignment: .top, spacing: 20) {
+            Image(systemName: systemImage)
+                .font(.system(size: ruleIconSize, weight: .medium))
+                .foregroundStyle(.tint)
+                .frame(width: ruleIconSize)
+                .accessibilityHidden(true)
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.headline)
+                    .font(.title3.weight(.semibold))
                 Text(detail)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
-        } icon: {
-            Image(systemName: systemImage)
-                .foregroundStyle(.tint)
-                .frame(width: 32)
         }
     }
 }

@@ -26,6 +26,7 @@ struct ProductionQuestionView: View {
             Section {
                 TextField("Your sentence", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
+                    .listRowInsets(.init(top: 8, leading: 24, bottom: 8, trailing: 24))
             } footer: {
                 VStack(alignment: .leading, spacing: 6) {
                     // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
@@ -70,7 +71,8 @@ struct ProductionQuestionView: View {
             Text("Write a sentence using \"\(word)\"")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityFocused($isPromptFocused)
         }
