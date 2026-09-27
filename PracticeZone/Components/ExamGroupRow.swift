@@ -16,7 +16,9 @@ struct ExamGroupRow: View {
                     .foregroundStyle(.secondary)
                 summary
                     .font(.subheadline)
-                    .foregroundStyle(group.examItems.isEmpty ? AnyShapeStyle(.secondary) : AnyShapeStyle(group.color.color))
+                    // Neutral text: group colors don't reach 4.5:1 on the capsule in Light mode.
+                    // The badge already carries the group's color.
+                    .foregroundStyle(.primary)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(.fill.tertiary, in: .capsule)

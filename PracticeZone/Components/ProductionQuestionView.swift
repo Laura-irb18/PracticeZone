@@ -9,6 +9,8 @@ struct ProductionQuestionView: View {
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var isConfirmingSkip = false
+    @AccessibilityFocusState private var isPromptFocused: Bool
+    @AccessibilityFocusState private var isErrorFocused: Bool
 
     private var trimmedSentence: String {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -35,8 +37,13 @@ struct ProductionQuestionView: View {
 
             if let errorMessage = generator?.errorMessage {
                 Section {
-                    Label(errorMessage, systemImage: "xmark.circle")
-                        .foregroundStyle(.red)
+                    Label {
+                        Text(errorMessage)
+                    } icon: {
+                        Image(systemName: "xmark.circle")
+                            .foregroundStyle(.red)
+                    }
+                    .accessibilityFocused($isErrorFocused)
                 } footer: {
                     Text("Skipping counts as incorrect.")
                 }
@@ -47,6 +54,8 @@ struct ProductionQuestionView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isPromptFocused)
         }
         .animation(.smooth, value: generator?.isGenerating)
         .safeAreaInset(edge: .bottom) {
@@ -59,11 +68,20 @@ struct ProductionQuestionView: View {
             newGenerator.prewarm()
         }
         .onChange(of: generator?.isGenerating) { _, isGenerating in
-            guard isGenerating == false,
-                  let generator,
-                  generator.error == nil,
-                  let result = generator.result else { return }
+            if isGenerating == true {
+                AccessibilityNotification.Announcement(String(localized: "Checking your sentence")).post()
+            }
+            guard isGenerating == false, let generator else { return }
+            if generator.error != nil {
+                isErrorFocused = true
+                return
+            }
+            guard let result = generator.result else { return }
             onResult(trimmedSentence, result)
+        }
+        .onAppear {
+            // VoiceOver starts each new question at its prompt instead of staying on Submit.
+            isPromptFocused = true
         }
         .onDisappear {
             generator?.cancel()

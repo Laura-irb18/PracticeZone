@@ -75,6 +75,10 @@ struct VocabularyItemEditorSheet: View {
                     .disabled(!viewModel.canSave)
                 }
             }
+            // A tap when AI starts a meaning, translation or example, including regenerating one.
+            .sensoryFeedback(.impact(weight: .medium), trigger: viewModel.generation) { old, new in
+                old == nil && new != nil
+            }
             .alert(
                 viewModel.generationErrorTitle,
                 isPresented: Binding(

@@ -11,6 +11,7 @@ struct PracticeWordView: View {
     @State private var hasSubmitted = false
     @State private var submittedSentence = ""
     @State private var motivationalPhrase = ""
+    @AccessibilityFocusState private var isFeedbackFocused: Bool
 
     private var isTooLong: Bool {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
@@ -54,16 +55,23 @@ struct PracticeWordView: View {
             if hasSubmitted, let generator {
                 if let errorMessage = generator.errorMessage {
                     Section {
-                        Label(errorMessage, systemImage: "xmark.circle")
-                            .foregroundStyle(.red)
+                        Label {
+                            Text(errorMessage)
+                        } icon: {
+                            Image(systemName: "xmark.circle")
+                                .foregroundStyle(.red)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                     }
                 } else if let result = generator.result {
                     Section("Feedback") {
-                        Label(
-                            result.isCorrect ? "Correct" : "Needs work",
-                            systemImage: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
-                        )
-                        .foregroundStyle(result.isCorrect ? .green : .orange)
+                        Label {
+                            Text(result.isCorrect ? "Correct" : "Needs work")
+                        } icon: {
+                            Image(systemName: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                .foregroundStyle(result.isCorrect ? .green : .orange)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                         Text(result.feedback)
                         ForEach(result.correctedSentences, id: \.self) { corrected in
                             Text(corrected)
@@ -118,11 +126,18 @@ struct PracticeWordView: View {
             generator = newGenerator
             newGenerator.prewarm()
         }
+        // A tap when the check starts; nothing while it runs or when it ends.
+        .sensoryFeedback(.impact(weight: .medium), trigger: generator?.isGenerating) { _, isGenerating in
+            isGenerating == true
+        }
         .onChange(of: generator?.isGenerating) { _, isGenerating in
-            guard isGenerating == false,
-                  let generator,
-                  generator.error == nil,
-                  let result = generator.result else { return }
+            if isGenerating == true {
+                AccessibilityNotification.Announcement(String(localized: "Checking your sentence")).post()
+            }
+            guard isGenerating == false, let generator else { return }
+            // VoiceOver moves to the verdict (then feedback and correction), or to the error.
+            isFeedbackFocused = true
+            guard generator.error == nil, let result = generator.result else { return }
             motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
             saveAttempt(sentence: submittedSentence, result: result)
         }

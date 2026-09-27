@@ -8,25 +8,35 @@ struct MultipleChoiceQuestionView: View {
 
     @State private var selectedOption: String?
     @State private var isConfirmingSkip = false
+    @AccessibilityFocusState private var isQuestionFocused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Which word means:")
-                .font(.headline)
-            Text(meaning)
-                .font(.title3)
-                .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Which word means:")
+                        .font(.headline)
+                    Text(meaning)
+                        .font(.title3)
+                }
+                // Read as one heading: "Which word means: <meaning>".
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isQuestionFocused)
 
-            VStack(spacing: 8) {
-                ForEach(Array(options.enumerated()), id: \.element) { index, option in
-                    optionButton(option, letter: Self.letter(for: index))
+                VStack(spacing: 8) {
+                    ForEach(Array(options.enumerated()), id: \.element) { index, option in
+                        optionButton(option, letter: Self.letter(for: index))
+                    }
                 }
             }
+            .padding(.horizontal)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // Only scrolls when the question doesn't fit (large text, landscape).
+        .scrollBounceBehavior(.basedOnSize)
         .background(Color(.systemGroupedBackground))
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             VStack(spacing: 8) {
                 BottomActionButton {
                     if let selectedOption {
@@ -56,6 +66,10 @@ struct MultipleChoiceQuestionView: View {
             }
             .padding(.horizontal)
             .padding(.bottom, 8)
+        }
+        .onAppear {
+            // VoiceOver starts each new question at its prompt instead of staying on Next.
+            isQuestionFocused = true
         }
     }
 

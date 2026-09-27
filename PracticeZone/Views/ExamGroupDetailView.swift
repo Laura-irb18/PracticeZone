@@ -18,7 +18,8 @@ struct ExamGroupDetailView: View {
                     startExamButton
                     Text(startExamNote ?? details)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        // Why the exam can't start is essential; the details are secondary.
+                        .foregroundStyle(startExamNote == nil ? HierarchicalShapeStyle.secondary : HierarchicalShapeStyle.primary)
                         .multilineTextAlignment(.center)
                 }
             }

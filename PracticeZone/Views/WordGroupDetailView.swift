@@ -68,8 +68,8 @@ struct WordGroupDetailView: View {
                 }
             }
         }
-        // The header shows the name once there are words; until then it goes in the bar.
-        .navigationTitle(group.items.isEmpty ? group.name : "")
+        // Always set: VoiceOver announces it and the back button menu lists it.
+        .navigationTitle(group.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
