@@ -81,12 +81,6 @@
         {
           "image-name" : "01_background2.png",
           "name" : "01_background2"
-        },
-        {
-          "glass" : false,
-          "hidden" : true,
-          "image-name" : "01_background.png",
-          "name" : "01_background"
         }
       ],
       "name" : "01_background",
