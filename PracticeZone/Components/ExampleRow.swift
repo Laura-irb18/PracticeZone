@@ -9,8 +9,9 @@ struct ExampleRow: View {
             HStack {
                 Text(text)
                     .font(.callout.italic())
-                SpeakButton(text: text)
-                    .font(.footnote)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                SpeakButton(text: text, iconAlignment: .trailing)
+                    .font(.subheadline)
             }
             if !translation.isEmpty {
                 Text(translation)
