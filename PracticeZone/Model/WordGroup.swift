@@ -32,4 +32,9 @@ final class WordGroup {
     var sortedExamAttempts: [ExamAttempt] {
         examAttempts.sorted { $0.date > $1.date }
     }
+
+    /// Words that can appear in an exam: only those with at least one meaning.
+    var examItems: [VocabularyItem] {
+        items.filter { !$0.meanings.isEmpty }
+    }
 }

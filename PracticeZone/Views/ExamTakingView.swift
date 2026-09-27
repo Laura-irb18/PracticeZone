@@ -47,6 +47,7 @@ struct ExamTakingView: View {
                 }
             }
         }
+        .scrollIndicators(.hidden)
         .task {
             guard session == nil else { return }
             session = ExamSession(group: group)
@@ -87,6 +88,7 @@ struct ExamTakingView: View {
     private func progressHeader(_ session: ExamSession) -> some View {
         VStack(alignment: .leading, spacing: 24) {
             ProgressView(value: Double(session.currentIndex), total: Double(session.questions.count))
+                .tint(group.color.color)
             Text("Question \(session.currentIndex + 1) of \(session.questions.count)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
