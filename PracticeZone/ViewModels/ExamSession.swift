@@ -156,7 +156,7 @@ final class ExamSession {
     /// `PracticeFeedbackGenerator`), shuffled. Groups with fewer than
     /// `optionsPerQuestion` words only get production questions.
     private static func makeQuestions(for group: WordGroup) -> [ExamQuestion] {
-        let usableItems = group.items.filter { !$0.meanings.isEmpty }
+        let usableItems = group.examItems
         guard !usableItems.isEmpty else { return [] }
 
         let prioritizedItems = usableItems.sorted {
@@ -183,6 +183,7 @@ final class ExamSession {
     private static func multipleChoiceQuestion(for item: VocabularyItem, allWords: [String]) -> ExamQuestion {
         let distractors = allWords.filter { $0 != item.word }.shuffled().prefix(optionsPerQuestion - 1)
         let options = ([item.word] + distractors).shuffled()
-        return ExamQuestion(item: item, word: item.word, meaning: item.primaryMeaning, kind: .multipleChoice(options: options))
+        let meaning = item.meanings.randomElement()?.definition ?? ""
+        return ExamQuestion(item: item, word: item.word, meaning: meaning, kind: .multipleChoice(options: options))
     }
 }

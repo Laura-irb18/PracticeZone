@@ -44,7 +44,7 @@ struct MultipleChoiceQuestionView: View {
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
                 .controlSize(.large)
                 .confirmationDialog("Skip Question?", isPresented: $isConfirmingSkip, titleVisibility: .visible) {
                     Button("Skip Question", role: .destructive) {

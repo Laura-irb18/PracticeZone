@@ -27,6 +27,7 @@ struct PracticeWordView: View {
                     }
                 }
         }
+        .scrollIndicators(.hidden)
     }
 
     private var content: some View {
@@ -42,7 +43,7 @@ struct PracticeWordView: View {
                 Text("Your sentence")
             } footer: {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("Use \"\(item.word)\" in an English sentence. AI feedback can make mistakes.")
+                    Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
                     Spacer()
                     Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
                         .monospacedDigit()
