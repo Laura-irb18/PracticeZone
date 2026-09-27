@@ -2,11 +2,11 @@ import SwiftUI
 
 struct MeaningRow: View {
     let definition: String
+    let translation: String
     let partOfSpeech: String
-    let context: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
                 Text(definition)
                     .font(.title3)
@@ -19,32 +19,19 @@ struct MeaningRow: View {
                         .background(.quaternary, in: Capsule())
                 }
             }
-            if !context.isEmpty {
-                Text(context)
-                    .font(.footnote)
+            if !translation.isEmpty {
+                Text(translation)
                     .foregroundStyle(.secondary)
             }
         }
     }
 }
 
-struct ExampleRow: View {
-    let text: String
-    let translation: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(text)
-                    .font(.callout.italic())
-                SpeakButton(text: text)
-                    .font(.footnote)
-            }
-            if !translation.isEmpty {
-                Text(translation)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
+#Preview {
+    MeaningRow(
+        definition: "an arrangement to have something held for you in advance",
+        translation: "reserva",
+        partOfSpeech: "noun"
+    )
+    .padding()
 }

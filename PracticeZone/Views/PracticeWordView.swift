@@ -4,39 +4,102 @@ import SwiftData
 struct PracticeWordView: View {
     let item: VocabularyItem
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
     @State private var sentence = ""
     @State private var generator: PracticeFeedbackGenerator?
     @State private var hasSubmitted = false
+    @State private var submittedSentence = ""
+    @State private var motivationalPhrase = ""
+    @AccessibilityFocusState private var isFeedbackFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var characterCount: Int {
+        sentence.trimmingCharacters(in: .whitespacesAndNewlines).count
+    }
+
+    private var isTooLong: Bool {
+        characterCount > PracticeFeedbackGenerator.maxSentenceLength
+    }
 
     var body: some View {
+        NavigationStack {
+            content
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(role: .close) {
+                            dismiss()
+                        }
+                    }
+                }
+        }
+        .scrollIndicators(.hidden)
+    }
+
+    private var content: some View {
         Form {
             Section {
-                WordDetailView(item: item)
+                WordDetailHeader(word: item.word, friendlyPronunciation: item.friendlyPronunciation)
             }
 
-            Section("Your sentence") {
+            Section {
                 TextField("Write a sentence using \"\(item.word)\"", text: $sentence, axis: .vertical)
                     .disabled(generator?.isGenerating == true)
+            } header: {
+                Text("Your sentence")
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                    let layout = dynamicTypeSize.isAccessibilitySize
+                        ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                        : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                    layout {
+                        Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text("\(characterCount)/\(PracticeFeedbackGenerator.maxSentenceLength)")
+                            .monospacedDigit()
+                            .foregroundStyle(isTooLong ? .red : .secondary)
+                            .accessibilityLabel("\(characterCount) of \(PracticeFeedbackGenerator.maxSentenceLength) characters")
+                    }
+                    // Says why Check Sentence is off, not only with the red counter (HIG: more than color alone).
+                    if isTooLong {
+                        Label {
+                            Text("^[\(characterCount - PracticeFeedbackGenerator.maxSentenceLength) character](inflect: true) over the limit")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
             }
 
             if hasSubmitted, let generator {
-                if let error = generator.error {
+                if let errorMessage = generator.errorMessage {
                     Section {
-                        Label(error.localizedDescription, systemImage: "xmark.circle")
-                            .foregroundStyle(.red)
+                        Label {
+                            Text(errorMessage)
+                        } icon: {
+                            Image(systemName: "xmark.circle")
+                                .foregroundStyle(.red)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                     }
                 } else if let result = generator.result {
                     Section("Feedback") {
-                        Label(result.isCorrect ? "Correct" : "Needs work", systemImage: result.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .foregroundStyle(result.isCorrect ? .green : .red)
+                        Label {
+                            Text(result.isCorrect ? "Correct" : "Needs work")
+                        } icon: {
+                            Image(systemName: result.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                .foregroundStyle(result.isCorrect ? .green : .orange)
+                        }
+                        .accessibilityFocused($isFeedbackFocused)
                         Text(result.feedback)
-                        if !result.isCorrect {
-                            Text(result.correctedSentence)
+                        ForEach(result.correctedSentences, id: \.self) { corrected in
+                            Text(corrected)
                                 .italic()
                                 .foregroundStyle(.secondary)
                         }
-                        Text(MotivationalPhrase.random(isCorrect: result.isCorrect))
+                        Text(motivationalPhrase)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -48,74 +111,99 @@ struct PracticeWordView: View {
                     ForEach(item.sortedPracticeAttempts) { attempt in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
-                                Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundStyle(attempt.isCorrect ? .green : .red)
+                                Image(systemName: attempt.isCorrect ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                                    .foregroundStyle(attempt.isCorrect ? .green : .orange)
+                                    .accessibilityLabel(attempt.isCorrect ? "Correct" : "Needs work")
                                 Text(attempt.sentence)
                                     .font(.subheadline)
                             }
                             Text(attempt.feedback)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                            Text(attempt.createdAt.formatted(date: .abbreviated, time: .shortened))
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                deleteAttempt(attempt)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                        // An alternative to the swipe (HIG: offer alternatives to gestures).
+                        .contextMenu {
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                deleteAttempt(attempt)
+                            }
                         }
                     }
                 }
             }
         }
+        .animation(.smooth, value: generator?.isGenerating)
         .navigationTitle("Practice")
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             bottomBar
         }
-        .task {
-            guard generator == nil else { return }
-            let newGenerator = PracticeFeedbackGenerator(
-                word: item.word,
-                meaning: item.meaningSummary
-            )
+        .task(id: item.word) {
+            guard generator?.isGenerating != true else { return }
+            if generator != nil { hasSubmitted = false }
+            let newGenerator = PracticeFeedbackGenerator()
             generator = newGenerator
             newGenerator.prewarm()
         }
+        // A tap when the check starts; nothing while it runs or when it ends.
+        .sensoryFeedback(.impact(weight: .medium), trigger: generator?.isGenerating) { _, isGenerating in
+            isGenerating == true
+        }
         .onChange(of: generator?.isGenerating) { _, isGenerating in
-            guard isGenerating == false,
-                  let generator,
-                  generator.error == nil,
-                  let result = generator.result else { return }
-            saveAttempt(sentence: sentence, result: result)
+            if isGenerating == true {
+                AccessibilityNotification.Announcement(String(localized: "Checking your sentence")).post()
+            }
+            guard isGenerating == false, let generator else { return }
+            // VoiceOver moves to the verdict (then feedback and correction), or to the error.
+            isFeedbackFocused = true
+            guard generator.error == nil, let result = generator.result else { return }
+            motivationalPhrase = MotivationalPhrase.random(isCorrect: result.isCorrect)
+            saveAttempt(sentence: submittedSentence, result: result)
+        }
+        .onChange(of: sentence) {
+            hasSubmitted = false
         }
     }
 
-    @ViewBuilder
     private var bottomBar: some View {
-        if generator?.isGenerating == true {
-            ProgressView()
-                .padding()
-        } else if hasSubmitted, generator?.result != nil {
-            Button {
+        let isChecking = generator?.isGenerating == true
+        let showsTryAgain = hasSubmitted && generator?.result != nil && !isChecking
+        let hasSentence = !sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+
+        return BottomActionButton {
+            if showsTryAgain {
                 reset()
-            } label: {
-                Label("Try Another Sentence", systemImage: "arrow.counterclockwise")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .padding()
-        } else {
-            Button {
+            } else {
                 submit()
-            } label: {
-                Label("Check Sentence", systemImage: "checkmark")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(sentence.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .padding()
+        } label: {
+            if isChecking {
+                Label("Checking your sentence…", systemImage: "sparkles")
+                    .symbolEffect(.breathe)
+            } else if showsTryAgain {
+                Text("Try Another Sentence")
+            } else {
+                Text("Check Sentence")
+            }
         }
+        .disabled(isChecking || (!showsTryAgain && (!hasSentence || isTooLong)))
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 
     private func submit() {
         let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let generator else { return }
         hasSubmitted = true
+        submittedSentence = trimmed
         generator.generate(for: trimmed)
     }
 
@@ -124,15 +212,32 @@ struct PracticeWordView: View {
             sentence: sentence,
             isCorrect: result.isCorrect,
             feedback: result.feedback,
-            correctedSentence: result.correctedSentence,
+            correctedSentences: result.correctedSentences,
             item: item
         )
         modelContext.insert(attempt)
         item.practiceAttempts.append(attempt)
     }
 
+    private func deleteAttempt(_ attempt: PracticeAttempt) {
+        modelContext.delete(attempt)
+    }
+
     private func reset() {
         hasSubmitted = false
         sentence = ""
     }
+}
+
+#Preview {
+    let item = VocabularyItem(word: "reservation", friendlyPronunciation: "reser-vei-shon")
+    item.meanings = [
+        Meaning(
+            definition: "an arrangement to have something held for you in advance",
+            partOfSpeech: "noun",
+            order: 0,
+            item: item
+        )
+    ]
+    return PracticeWordView(item: item)
 }

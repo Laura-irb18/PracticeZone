@@ -9,3 +9,8 @@ xcuserdata/
 # Swift Package Manager
 .build/
 .swiftpm/
+
+# Claude Code
+CLAUDE.md
+.mcp.json
+Tools/

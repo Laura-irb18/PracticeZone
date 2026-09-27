@@ -4,14 +4,14 @@ import SwiftData
 @Model
 final class Example {
     var text: String
-    var friendlyPronunciation: String
     var translation: String
-    var item: VocabularyItem?
+    var order: Int
+    var meaning: Meaning?
 
-    init(text: String, friendlyPronunciation: String, translation: String, item: VocabularyItem? = nil) {
+    init(text: String, translation: String, order: Int, meaning: Meaning? = nil) {
         self.text = text
-        self.friendlyPronunciation = friendlyPronunciation
         self.translation = translation
-        self.item = item
+        self.order = order
+        self.meaning = meaning
     }
 }

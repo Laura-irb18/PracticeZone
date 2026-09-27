@@ -29,6 +29,10 @@ final class ExamAttempt {
         guard total > 0 else { return 0 }
         return Int((Double(earned) / Double(total) * 100).rounded())
     }
+
+    var sortedQuestionResults: [ExamQuestionResult] {
+        questionResults.sorted { ($0.order ?? 0) < ($1.order ?? 0) }
+    }
 }
 
 enum ExamQuestionKind: String, Codable {
@@ -43,14 +47,40 @@ final class ExamQuestionResult {
     var isCorrect: Bool
     var pointsEarned: Int
     var maxPoints: Int
+
+    /// Text shown under the answer in the results: the correct word after a wrong or
+    /// skipped multiple-choice answer, the grading message from `PracticeFeedback` for a
+    /// sentence, or why a question was skipped. Empty for a correct multiple-choice answer.
+    /// Optional (rather than a non-optional default) so lightweight migration can add this
+    /// attribute to existing rows without a "missing mandatory attribute" failure — SwiftData's
+    /// automatic migration only fills in a default for genuinely optional attributes.
+    var feedback: String?
+
+    /// Corrected versions of the submitted sentence, for a production answer only. Optional
+    /// for the same migration-safety reason as `feedback`.
+    var correctedSentences: [String]?
+
+    /// Optional for the same migration-safety reason as `feedback`
+    /// (and nil for results saved before this field existed).
+    var userAnswer: String?
+
+    /// Position of the question in the exam (0-based). SwiftData doesn't keep the order
+    /// of a to-many relationship when it refetches from the store, so results are sorted
+    /// by this. Optional for the same migration-safety reason as `feedback` (and nil for
+    /// results saved before this field existed).
+    var order: Int?
+
     var attempt: ExamAttempt?
 
-    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, attempt: ExamAttempt? = nil) {
+    init(questionText: String, kind: ExamQuestionKind, isCorrect: Bool, pointsEarned: Int, maxPoints: Int, userAnswer: String? = nil, feedback: String? = nil, correctedSentences: [String]? = nil, attempt: ExamAttempt? = nil) {
         self.questionText = questionText
         self.kind = kind
         self.isCorrect = isCorrect
         self.pointsEarned = pointsEarned
         self.maxPoints = maxPoints
+        self.userAnswer = userAnswer
+        self.feedback = feedback
+        self.correctedSentences = correctedSentences
         self.attempt = attempt
     }
 }

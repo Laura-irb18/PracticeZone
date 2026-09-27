@@ -1,17 +1,32 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var aiStatus = AIStatus.current
+    @AppStorage("showsWelcome") private var showsWelcome = true
+
     var body: some View {
         TabView {
-            WordGroupsView()
-                .tabItem {
-                    Label("Word Groups", systemImage: "folder")
-                }
+            Tab("Library", systemImage: "rectangle.stack.fill") {
+                WordGroupsView()
+            }
 
-            ExamsView()
-                .tabItem {
-                    Label("Exams", systemImage: "list.bullet.clipboard")
-                }
+            Tab("Exams", systemImage: "list.bullet.clipboard") {
+                ExamsView()
+            }
+        }
+        .environment(\.aiStatus, aiStatus)
+        .scrollIndicators(.hidden)
+        .fullScreenCover(isPresented: $showsWelcome) {
+            WelcomeView {
+                showsWelcome = false
+            }
+        }
+        // The framework doesn't notify availability changes, so check again when the app comes back.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                aiStatus = .current
+            }
         }
     }
 }

@@ -3,23 +3,24 @@ import Foundation
 struct PracticeFeedback {
     let isCorrect: Bool
     let feedback: String
-    let correctedSentence: String
+    let correctedSentences: [String]
 
-    init(word: String, sentence: String, grammar: GrammarCheckResult, meaning: MeaningCheckResult) {
-        let grammarOK = grammar.mistake.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "none"
-        self.isCorrect = grammarOK && meaning.isCorrect
-        self.correctedSentence = grammarOK ? sentence : grammar.correctedSentence
+    init(sentence: String, grammar: GrammarCheckResult) {
+        let corrected = grammar.correctedSentence.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Changes in case or punctuation only ("Last summer, we…") don't count as mistakes.
+        self.isCorrect = corrected.isEmpty || Self.comparable(corrected) == Self.comparable(sentence)
+        self.correctedSentences = isCorrect ? [] : [corrected]
+        self.feedback = isCorrect
+            ? "Well done — no grammar mistakes found."
+            : "Check the corrected sentence below."
+    }
 
-        switch (grammarOK, meaning.isCorrect) {
-        case (true, true):
-            self.feedback = "Well done — \"\(word)\" is used correctly and the sentence reads naturally."
-        case (false, true):
-            self.feedback = "Good use of \"\(word)\" — just fix the grammar: \(grammar.mistake)"
-        case (true, false):
-            self.feedback = "Grammar is fine, but check the meaning: \(meaning.senseUsed)"
-        case (false, false):
-            self.feedback = "Two things to fix: \(grammar.mistake) Also, \(meaning.senseUsed)"
-        }
+    /// Lowercased, punctuation removed, whitespace collapsed.
+    private static func comparable(_ text: String) -> String {
+        let scalars = text.lowercased().unicodeScalars.filter { !CharacterSet.punctuationCharacters.contains($0) }
+        return String(String.UnicodeScalarView(scalars))
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
     }
 }
 
