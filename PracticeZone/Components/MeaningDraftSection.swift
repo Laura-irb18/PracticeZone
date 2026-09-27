@@ -37,10 +37,7 @@ struct MeaningDraftSection: View {
                 TextField("Definition", text: $meaning.definition, axis: .vertical)
                     .disabled(isGeneratingMeaning)
                 if showsDefinitionButton {
-                    Button(
-                        isGeneratingMeaning ? "Stop Generating" : canRegenerate ? "Regenerate Meaning" : "Generate Meaning",
-                        systemImage: canRegenerate ? "arrow.counterclockwise" : "sparkles"
-                    ) {
+                    Button {
                         if isGeneratingMeaning {
                             viewModel.cancelGeneration()
                         } else if canRegenerate {
@@ -48,8 +45,12 @@ struct MeaningDraftSection: View {
                         } else {
                             viewModel.generateMeaning(meaning)
                         }
+                    } label: {
+                        iconLabel(
+                            isGeneratingMeaning ? "Stop Generating" : canRegenerate ? "Regenerate Meaning" : "Generate Meaning",
+                            systemImage: canRegenerate ? "arrow.counterclockwise" : "sparkles"
+                        )
                     }
-                    .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .symbolEffect(.breathe, isActive: isGeneratingMeaning)
                     .disabled(!isGeneratingMeaning && !viewModel.canStartGeneration)
@@ -59,14 +60,15 @@ struct MeaningDraftSection: View {
                 TextField("Spanish translation (optional)", text: $meaning.translation, axis: .vertical)
                     .disabled(isGeneratingMeaning || isTranslating)
                 if showsTranslationButton {
-                    Button(isTranslating ? "Stop Translating" : "Translate", systemImage: "sparkles") {
+                    Button {
                         if isTranslating {
                             viewModel.cancelGeneration()
                         } else {
                             viewModel.translateMeaning(meaning)
                         }
+                    } label: {
+                        iconLabel(isTranslating ? "Stop Translating" : "Translate", systemImage: "sparkles")
                     }
-                    .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .symbolEffect(.breathe, isActive: isTranslating)
                     .disabled(!isTranslating && !viewModel.canStartGeneration)
@@ -80,10 +82,11 @@ struct MeaningDraftSection: View {
                 Text("Meaning \(viewModel.number(of: meaning))")
                 Spacer()
                 if !isPrimary {
-                    Button("Remove Meaning", systemImage: "minus.circle.fill", role: .destructive) {
+                    Button(role: .destructive) {
                         viewModel.removeMeaning(meaning)
+                    } label: {
+                        iconLabel("Remove Meaning", systemImage: "minus.circle.fill")
                     }
-                    .labelStyle(.iconOnly)
                     .foregroundStyle(.red)
                     .buttonStyle(.borderless)
                     .disabled(viewModel.generation != nil)
@@ -109,25 +112,27 @@ struct MeaningDraftSection: View {
                     TextField(isGeneratingThis ? "Generating an example…" : "Example sentence", text: $example.text, axis: .vertical)
                         .disabled(isGeneratingThis)
                     if aiStatus.isAvailable && (isGeneratingThis || example.isGenerated) {
-                        Button(
-                            isGeneratingThis ? "Stop Generating" : "Regenerate Example",
-                            systemImage: isGeneratingThis ? "sparkles" : "arrow.counterclockwise"
-                        ) {
+                        Button {
                             if isGeneratingThis {
                                 viewModel.cancelGeneration()
                             } else {
                                 viewModel.regenerateExample(example, in: meaning)
                             }
+                        } label: {
+                            iconLabel(
+                                isGeneratingThis ? "Stop Generating" : "Regenerate Example",
+                                systemImage: isGeneratingThis ? "sparkles" : "arrow.counterclockwise"
+                            )
                         }
-                        .labelStyle(.iconOnly)
                         .contentTransition(.symbolEffect(.replace))
                         .symbolEffect(.breathe, isActive: isGeneratingThis)
                         .disabled(!isGeneratingThis && !viewModel.canStartGeneration)
                     }
-                    Button("Remove Example", systemImage: "minus.circle.fill", role: .destructive) {
+                    Button(role: .destructive) {
                         viewModel.removeExample(example, from: meaning)
+                    } label: {
+                        iconLabel("Remove Example", systemImage: "minus.circle.fill")
                     }
-                    .labelStyle(.iconOnly)
                     .foregroundStyle(.red)
                     .disabled(viewModel.isGeneratingExample(in: meaning))
                 }
@@ -155,10 +160,11 @@ struct MeaningDraftSection: View {
                     }
                     Spacer()
                     if showsExamplesButton {
-                        Button("Generate Example", systemImage: "sparkles") {
+                        Button {
                             viewModel.generateExample(for: meaning)
+                        } label: {
+                            iconLabel("Generate Example", systemImage: "sparkles")
                         }
-                        .labelStyle(.iconOnly)
                         .disabled(!viewModel.canStartGeneration)
                     }
                 }
@@ -172,6 +178,18 @@ struct MeaningDraftSection: View {
             }
             .listSectionSpacing(.compact)
         }
+    }
+
+    /// An icon-only button label with a 44×44 pt tap area (HIG), without making the icon bigger.
+    /// The icon stays against the trailing edge, where it is today.
+    private func iconLabel(_ title: LocalizedStringKey, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .labelStyle(.iconOnly)
+            .frame(minWidth: 44, alignment: .trailing)
+            // 44 pt tall tap area without making the row taller: pad, set the shape, then take the padding back.
+            .padding(.vertical, 12)
+            .contentShape(.rect)
+            .padding(.vertical, -12)
     }
 
     @ViewBuilder
