@@ -17,7 +17,7 @@ struct WelcomePage: Identifiable {
         WelcomePage(
             id: 1,
             title: "Meanings with AI",
-            detail: "Apple Intelligence writes definitions, examples and Spanish translations, right on your device. Check them before saving: AI can make mistakes.",
+            detail: "Apple Intelligence writes definitions, examples and Spanish translations, right on your device.",
             systemImage: "apple.intelligence"
         ),
         WelcomePage(
