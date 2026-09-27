@@ -27,6 +27,8 @@ struct WelcomeView: View {
                 Button("Skip", action: onFinish)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .padding(.horizontal, 24)
+                    // Keeps the control clear of the system area and gives it a 44 pt touch target.
+                    .padding(.vertical, 12)
             }
         }
         .safeAreaInset(edge: .bottom) {
