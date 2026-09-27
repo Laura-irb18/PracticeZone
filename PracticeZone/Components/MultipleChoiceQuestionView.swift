@@ -9,6 +9,7 @@ struct MultipleChoiceQuestionView: View {
     @State private var selectedOption: String?
     @State private var isConfirmingSkip = false
     @AccessibilityFocusState private var isQuestionFocused: Bool
+    @ScaledMetric(relativeTo: .subheadline) private var letterSize = 32
 
     var body: some View {
         ScrollView {
@@ -88,7 +89,7 @@ struct MultipleChoiceQuestionView: View {
                 Text(letter)
                     .font(.subheadline.bold())
                     .foregroundStyle(isSelected ? Color.white : Color.secondary)
-                    .frame(width: 32, height: 32)
+                    .frame(width: letterSize, height: letterSize)
                     .background {
                         ZStack {
                             Circle()

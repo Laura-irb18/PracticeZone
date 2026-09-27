@@ -12,6 +12,7 @@ struct PracticeWordView: View {
     @State private var submittedSentence = ""
     @State private var motivationalPhrase = ""
     @AccessibilityFocusState private var isFeedbackFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var isTooLong: Bool {
         sentence.trimmingCharacters(in: .whitespacesAndNewlines).count > PracticeFeedbackGenerator.maxSentenceLength
@@ -43,9 +44,13 @@ struct PracticeWordView: View {
             } header: {
                 Text("Your sentence")
             } footer: {
-                HStack(alignment: .firstTextBaseline) {
+                // At accessibility sizes the counter goes under the hint, so the hint keeps the full width.
+                let layout = dynamicTypeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+                layout {
                     Text("Use \"\(item.word)\" with the meaning you studied. AI only checks that your sentence is well written. It can make mistakes.")
-                    Spacer()
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     Text("\(sentence.count)/\(PracticeFeedbackGenerator.maxSentenceLength)")
                         .monospacedDigit()
                         .foregroundStyle(isTooLong ? .red : .secondary)
@@ -122,7 +127,7 @@ struct PracticeWordView: View {
         }
         .animation(.smooth, value: generator?.isGenerating)
         .navigationTitle("Practice")
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaBar(edge: .bottom) {
             bottomBar
         }
         .task(id: item.word) {

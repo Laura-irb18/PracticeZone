@@ -65,7 +65,7 @@ struct ExamTakingView: View {
                 session.skipQuestion()
             }
             .id(question.id)
-            .safeAreaInset(edge: .top) {
+            .safeAreaBar(edge: .top) {
                 progressHeader(session)
                     .padding(.horizontal)
             }
@@ -78,7 +78,7 @@ struct ExamTakingView: View {
                 session.skipQuestion()
             }
             .id(question.id)
-            .safeAreaInset(edge: .top) {
+            .safeAreaBar(edge: .top) {
                 progressHeader(session)
                     .padding(.horizontal)
             }
